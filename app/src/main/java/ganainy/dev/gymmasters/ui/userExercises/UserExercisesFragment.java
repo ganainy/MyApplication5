@@ -1,13 +1,13 @@
 package ganainy.dev.gymmasters.ui.userExercises;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,40 +17,25 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.UserExercisesFragmentBinding;
 import ganainy.dev.gymmasters.shared_adapters.ExercisesAdapter;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
 import ganainy.dev.gymmasters.utils.NetworkState;
 
-import static ganainy.dev.gymmasters.ui.profile.ProfileFragment.USER_ID;
 
-/**can be called to show logged user exercises or any user exercises*/
 public class UserExercisesFragment extends Fragment {
 
     public static final String USER_NAME = "userName";
-    @BindView(R.id.loading_layout_shimmer)
-    LinearLayout shimmerLoadingLayout;
-    @BindView(R.id.empty_layout)
-    ConstraintLayout emptyLayout;
-    @BindView(R.id.error_layout)
-    ConstraintLayout errorLayout;
-    @BindView(R.id.exercisesRecyclerView)
-    RecyclerView exercisesRecyclerView;
-    @BindView(R.id.toolbarTitleTextView)
-    TextView toolbarTitleTextView;
 
-    @OnClick(R.id.backArrowImageView)
-    void onBackArrowClick(){
-        requireActivity().onBackPressed();
-    }
+    //todo what is this user id supposed to be>?
+    private static final String USER_ID = "";
 
+    private UserExercisesFragmentBinding binding;
     private ExercisesAdapter exercisesAdapter;
     private UserExercisesViewModel mViewModel;
 
-    public static UserExercisesFragment newInstance(String userId,String userName) {
+    public static UserExercisesFragment newInstance(String userId, String userName) {
         UserExercisesFragment userExercisesFragment = new UserExercisesFragment();
         Bundle bundle = new Bundle();
         bundle.putString(USER_ID, userId);
@@ -59,14 +44,11 @@ public class UserExercisesFragment extends Fragment {
         return userExercisesFragment;
     }
 
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.user_exercises_fragment, container, false);
-        ButterKnife.bind(this,view);
-        setupRecycler();
-        return view;
+        binding = UserExercisesFragmentBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
@@ -74,7 +56,7 @@ public class UserExercisesFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(UserExercisesViewModel.class);
 
-        /*arguments can't be null since its passed with fragment instantiation*/
+        // Arguments can't be null since they're passed with fragment instantiation
         mViewModel.downloadLoggedUserExercises(getArguments().getString(USER_ID));
 
         setToolbarTitle(getArguments().getString(USER_NAME));
@@ -85,55 +67,58 @@ public class UserExercisesFragment extends Fragment {
         });
 
         mViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(), this::handleNetworkStateUi);
+
+        // Set up the RecyclerView
+        setupRecycler();
+
+        // Set up the back arrow click listener
+        binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());
     }
 
     private void setToolbarTitle(String userName) {
-        if (userName!=null)
-        toolbarTitleTextView.setText(userName+"'s exercises");
+        if (userName != null) {
+            binding.toolbarTitleTextView.setText(userName + "'s exercises");
+        }
     }
-
 
     private void setupRecycler() {
         exercisesAdapter = new ExercisesAdapter(requireActivity().getApplicationContext(), exercise -> {
-            //handle click of certain exercise
+            // Handle click of certain exercise
             ActivityCallback activityCallback = (ActivityCallback) requireActivity();
             activityCallback.openExerciseFragment(exercise);
         });
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(exercisesRecyclerView.getContext(),
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.exercisesRecyclerView.getContext(),
                 DividerItemDecoration.VERTICAL);
-        exercisesRecyclerView.addItemDecoration(dividerItemDecoration);
-        exercisesRecyclerView.setAdapter(exercisesAdapter);
+        binding.exercisesRecyclerView.addItemDecoration(dividerItemDecoration);
+        binding.exercisesRecyclerView.setAdapter(exercisesAdapter);
     }
-
 
     private void handleNetworkStateUi(NetworkState networkState) {
         switch (networkState) {
             case SUCCESS:
-                errorLayout.setVisibility(View.INVISIBLE);
-                emptyLayout.setVisibility(View.INVISIBLE);
-                exercisesRecyclerView.setVisibility(View.VISIBLE);
-                shimmerLoadingLayout.setVisibility(View.INVISIBLE);
+                binding.errorLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.emptyLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.exercisesRecyclerView.setVisibility(View.VISIBLE);
+                binding.loadingLayoutShimmer.getRoot().setVisibility(View.INVISIBLE);
                 break;
             case ERROR:
-                errorLayout.setVisibility(View.VISIBLE);
-                emptyLayout.setVisibility(View.INVISIBLE);
-                exercisesRecyclerView.setVisibility(View.INVISIBLE);
-                shimmerLoadingLayout.setVisibility(View.INVISIBLE);
+                binding.errorLayout.getRoot().setVisibility(View.VISIBLE);
+                binding.emptyLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.exercisesRecyclerView.setVisibility(View.INVISIBLE);
+                binding.loadingLayoutShimmer.getRoot().setVisibility(View.INVISIBLE);
                 break;
             case LOADING:
-                errorLayout.setVisibility(View.INVISIBLE);
-                emptyLayout.setVisibility(View.INVISIBLE);
-                exercisesRecyclerView.setVisibility(View.INVISIBLE);
-                shimmerLoadingLayout.setVisibility(View.VISIBLE);
+                binding.errorLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.emptyLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.exercisesRecyclerView.setVisibility(View.INVISIBLE);
+                binding.loadingLayoutShimmer.getRoot().setVisibility(View.VISIBLE);
                 break;
             case EMPTY:
-                errorLayout.setVisibility(View.INVISIBLE);
-                emptyLayout.setVisibility(View.VISIBLE);
-                exercisesRecyclerView.setVisibility(View.INVISIBLE);
-                shimmerLoadingLayout.setVisibility(View.INVISIBLE);
+                binding.errorLayout.getRoot().setVisibility(View.INVISIBLE);
+                binding.emptyLayout.getRoot().setVisibility(View.VISIBLE);
+                binding.exercisesRecyclerView.setVisibility(View.INVISIBLE);
+                binding.loadingLayoutShimmer.getRoot().setVisibility(View.INVISIBLE);
                 break;
         }
     }
-
-
 }

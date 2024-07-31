@@ -13,6 +13,6 @@
         app:autoPlay="false"
         app:handleNetworkEvents="true"
         app:enableAutomaticInitialization="true"
-        app:showFullScreenButton="true" />
+         />
 
 </FrameLayout>

@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
    >
 
-    <include layout="@layout/content_maps" />
+    <include
+        android:id="@+id/content_maps"
+        layout="@layout/content_maps" />
 
     <!--persistent bottom navigation-->
     <androidx.core.widget.NestedScrollView
@@ -18,7 +20,9 @@
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <!--place_info_card-->
-        <include layout="@layout/place_info_card" />
+        <include
+            android:id="@+id/place_info_card"
+            layout="@layout/place_info_card" />
 
     </androidx.core.widget.NestedScrollView>
 

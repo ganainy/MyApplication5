@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -23,15 +24,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.CreateExerciseFragmentBinding;
+import ganainy.dev.gymmasters.databinding.CreateWorkoutFragmentBinding;
 import ganainy.dev.gymmasters.models.app_models.Exercise;
 import ganainy.dev.gymmasters.utils.ApplicationViewModelFactory;
 
 import com.github.lzyzsd.circleprogress.CircleProgress;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -41,37 +41,63 @@ public class CreateWorkoutFragment extends Fragment {
 
     private String sets = "4";
     private String reps = "10";
-
-    @BindView(R.id.nameEditText)
     EditText nameEditText;
-
-    @BindView(R.id.durationEditText)
     EditText durationEditText;
-
-    @BindView(R.id.levelSpinner)
     Spinner levelSpinner;
-
-    @BindView(R.id.workoutImageView)
     ImageView workoutImage;
-
-    @BindView(R.id.exercisesRecycler)
     RecyclerView exercisesRecycler;
-    @BindView(R.id.searchView)
     EditText searchView;
-    @BindView(R.id.circle_progress)
     CircleProgress circleProgress;
-
-    @OnClick(R.id.backArrowImageView)
-    void onBackArrowClick(){
-        requireActivity().onBackPressed();
-    }
-
+    ConstraintLayout loadingLayout;
+    private ExerciseAdapterAdvanced exerciseAdapter;
+    CreateWorkoutFragmentBinding binding;
     CreateWorkoutViewModel mViewModel;
 
-    private ExerciseAdapterAdvanced exerciseAdapter;
 
-    @BindView(R.id.loading_layout)
-     ConstraintLayout loadingLayout;
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+
+
+         nameEditText=binding.nameEditText;
+
+         durationEditText=binding.durationEditText;
+
+         levelSpinner=binding.levelSpinner;
+
+         workoutImage=binding.workoutImageView;
+
+         exercisesRecycler=binding.exercisesRecycler;
+         searchView=binding.searchView;
+         circleProgress=binding.loadingLayout.circleProgress;
+
+         binding.backArrowImageView.setOnClickListener(v ->
+            requireActivity().onBackPressed()
+        );
+
+
+        binding.workoutImageView.setOnClickListener(v ->
+                openGalleryImageChooser()
+        );
+
+        binding.uploadButton.setOnClickListener(v ->
+                onUploadClicked()
+        );
+
+
+         loadingLayout= binding.loadingLayout.getRoot();
+
+
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+
+    void openGalleryImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), 103);
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -175,17 +201,11 @@ public class CreateWorkoutFragment extends Fragment {
         });
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.create_workout_fragment, container, false);
-        // setHasOptionsMenu(true);
-        ButterKnife.bind(this, view);
-        levelSpinnerCode();
-        setupRecycler();
-        return view;
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = CreateWorkoutFragmentBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
 
@@ -226,13 +246,7 @@ public class CreateWorkoutFragment extends Fragment {
     }
 
 
-    @OnClick(R.id.workoutImageView)
-    void openGalleryImageChooser() {
-            Intent intent = new Intent();
-            intent.setType("image/*");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), 103);
-    }
+
 
 
     @Override
@@ -245,7 +259,6 @@ public class CreateWorkoutFragment extends Fragment {
         }
     }
 
-    @OnClick(R.id.uploadButton)
     public void onUploadClicked() {
         /*this list contains exercises i added to the work out and each one has sets and reps*/
         if (mViewModel.validateInputs(nameEditText.getText().toString().trim(),

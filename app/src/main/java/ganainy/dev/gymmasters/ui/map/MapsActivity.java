@@ -61,10 +61,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.ActivityMapsBinding;
+import ganainy.dev.gymmasters.databinding.ContentMapsBinding;
+import ganainy.dev.gymmasters.databinding.MapHintBinding;
+import ganainy.dev.gymmasters.databinding.PlaceInfoCardBinding;
 import ganainy.dev.gymmasters.models.app_models.Gym;
 import ganainy.dev.gymmasters.utils.SharedPrefUtils;
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -90,56 +91,20 @@ public class MapsActivity extends AppCompatActivity implements
     private View mapView;
     private BottomSheetBehavior mBottomSheetBehavior;
 
-    @BindView(R.id.rippleBackground)
-     RippleBackground rippleBackground;
-
-    @BindView(R.id.searchBar)
-    MaterialSearchBar materialSearchBar;
-
-    @BindView(R.id.imageView9)
-    ImageView markerImage;
-
-    @BindView(R.id.nameShimmer)
-    TextView textViewName;
-
-    @BindView(R.id.textView8)
-    TextView textViewAddress;
-
-    @BindView(R.id.textView12)
-    TextView textViewOpeningHours;
-
-    @BindView(R.id.textViewRate)
-    TextView textViewRate;
-
-    @BindView(R.id.bottom_sheet)
-    View bottomSheet;
-
-    @BindView(R.id.hint_layout)
-    ConstraintLayout hintLayout;
-
-    @OnClick(R.id.button_find_nearby_gym)
-    public void onFindNearbyGymClick() {
-        mViewModel.findNearbyGyms(
-                getString(R.string.google_places_key),mGoogleMap.getCameraPosition().target
-        );
-    }
-
-    @OnClick(R.id.closeImage)
-    public void onViewClicked() {
-        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-    }
-
-    @OnClick(R.id.button_hint)
-    public void closeHint() {
-        hintLayout.setVisibility(View.GONE);
-    }
-
+    private ActivityMapsBinding binding;
+    private ContentMapsBinding contentMapsBinding;
+    private MapHintBinding mapHintBinding;
+    private PlaceInfoCardBinding placeInfoCardBinding;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        ButterKnife.bind(this);
+        binding = ActivityMapsBinding.inflate(getLayoutInflater());
+        contentMapsBinding = ContentMapsBinding.bind(binding.contentMaps.getRoot());
+        placeInfoCardBinding = PlaceInfoCardBinding.bind(binding.placeInfoCard.getRoot());
+        mapHintBinding = MapHintBinding.bind(binding.contentMaps.hintLayout.getRoot());
+
+        setContentView(binding.getRoot());
 
         checkShowHint();
         enableFullScreen();
@@ -149,25 +114,22 @@ public class MapsActivity extends AppCompatActivity implements
         initBottomSheet();
         showMapFragment();
         checkLocationPermission();
-
     }
 
     /**only show hint about the map activity if this is first time*/
     private void checkShowHint() {
-        if (SharedPrefUtils.getBoolean(this,IS_FIRST_SHOWING_MAP)){
-            //this is first time
-            hintLayout.setVisibility(View.VISIBLE);
-            SharedPrefUtils.putBoolean(this,false,IS_FIRST_SHOWING_MAP);
+        if (SharedPrefUtils.getBoolean(this, IS_FIRST_SHOWING_MAP)) {
+            // this is first time
+            contentMapsBinding.hintLayout.getRoot().setVisibility(View.VISIBLE);
+            SharedPrefUtils.putBoolean(this, false, IS_FIRST_SHOWING_MAP);
         }
     }
 
     private void initBottomSheet() {
-        //init bottom sheet
-        mBottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
     }
 
     private void showMapFragment() {
-        //show map fragment on activity
         SupportMapFragment mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mMapFragment != null) {
             mMapFragment.getMapAsync(this);
@@ -176,47 +138,43 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void initPlacesApi() {
-        //initialize places sdk
-        Places.initialize(this, getString(R.string.google_places_key)
-        );
-
+        Places.initialize(this, getString(R.string.google_places_key));
         mPlacesClient = Places.createClient(this);
     }
 
     private void initViewModel() {
-        mViewModel =new ViewModelProvider(this).get(MapViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(MapViewModel.class);
 
         mViewModel.getGymInfoLiveData().observe(this, gymEvent -> {
             Gym gym = gymEvent.getContentIfNotHandled();
-            if (gym!=null){
-                textViewRate.setText(getString(R.string.gym_rate,String.format("%.1f", gym.getRate())));
-                textViewOpeningHours.setText(gym.getOpeningHours());
-                textViewAddress.setText(gym.getAddress());
-                textViewName.setText(gym.getName());
+            if (gym != null) {
+                placeInfoCardBinding.textViewRate.setText(getString(R.string.gym_rate, String.format("%.1f", gym.getRate())));
+                placeInfoCardBinding.textViewOpeningHours.setText(gym.getOpeningHours());
+                placeInfoCardBinding.textViewAddress.setText(gym.getAddress());
+                placeInfoCardBinding.nameShimmer.setText(gym.getName());
                 mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         });
 
         mViewModel.getLocationLiveData().observe(this, locationEvent -> {
             LatLng location = locationEvent.getContentIfNotHandled();
-            if (location!=null){
-                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom
-                        (new LatLng(location.latitude, location.longitude), DEFAULT_ZOOM));
+            if (location != null) {
+                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.latitude, location.longitude), DEFAULT_ZOOM));
             }
         });
 
         mViewModel.getToastLiveData().observe(this, toastEvent -> {
             String toast = toastEvent.getContentIfNotHandled();
-            if (toast!=null){
-                Toast.makeText(this,toast,Toast.LENGTH_LONG).show();
+            if (toast != null) {
+                Toast.makeText(this, toast, Toast.LENGTH_LONG).show();
             }
         });
 
-        mViewModel.getRippleLoadingLiveData().observe(this,showRipple->{
-            if (showRipple){
-                rippleBackground.startRippleAnimation();
-            }else {
-                rippleBackground.stopRippleAnimation();
+        mViewModel.getRippleLoadingLiveData().observe(this, showRipple -> {
+            if (showRipple) {
+                contentMapsBinding.rippleBackground.startRippleAnimation();
+            } else {
+                contentMapsBinding.rippleBackground.stopRippleAnimation();
             }
         });
     }
@@ -235,65 +193,47 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void initMaterialSearchBar() {
+        contentMapsBinding.searchBar.setOnClickListener(view -> contentMapsBinding.searchBar.enableSearch());
 
-        materialSearchBar.setOnClickListener(view -> materialSearchBar.enableSearch());
-
-        materialSearchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
+        contentMapsBinding.searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
             @Override
             public void onSearchStateChanged(boolean enabled) {
             }
 
             @Override
             public void onSearchConfirmed(CharSequence text) {
-                findPlaceByName(text.toString());
+                //todo findPlaceByName(text.toString());
             }
 
             @Override
             public void onButtonClicked(int buttonCode) {
                 /*handle back button of material search bar*/
                 if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-                    materialSearchBar.disableSearch();
-                    materialSearchBar.clearSuggestions();
+                    contentMapsBinding.searchBar.disableSearch();
+                    contentMapsBinding.searchBar.clearSuggestions();
                 }
             }
         });
 
-        materialSearchBar.setSuggestionsClickListener(new SuggestionsAdapter.OnItemViewClickListener() {
+        contentMapsBinding.searchBar.setSuggestionsClickListener(new SuggestionsAdapter.OnItemViewClickListener() {
             @Override
             public void OnItemClickListener(int position, View v) {
-                /*we only have place id (from  FindAutocompletePredictionsRequest) and we need lat lng to be able to show place on map using places API*/
+                /*we only have place id (from FindAutocompletePredictionsRequest) and we need lat lng to be able to show place on map using places API*/
                 if (position >= placesPredictionList.size()) {
                     return;
                 }
                 AutocompletePrediction selectedPrediction = placesPredictionList.get(position);
-                String suggestion = materialSearchBar.getLastSuggestions().get(position).toString();
-                materialSearchBar.setText(suggestion);
-
+                String suggestion = contentMapsBinding.searchBar.getLastSuggestions().get(position).toString();
+                contentMapsBinding.searchBar.setText(suggestion);
 
                 //wait one second before using clearSuggestions for it to work properly
-                new Handler().postDelayed(() -> materialSearchBar.clearSuggestions(), (1000));
-
+                new Handler().postDelayed(() -> contentMapsBinding.searchBar.clearSuggestions(), (1000));
 
                 //close soft keyboard
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.hideSoftInputFromWindow(materialSearchBar.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
-                }
-                String place_id = selectedPrediction.getPlaceId();
-                List<Place.Field> placeFields = Collections.singletonList(Place.Field.LAT_LNG);//specify which field we are interested in
-                FetchPlaceRequest fetchPlaceRequest = FetchPlaceRequest.builder(place_id, placeFields).build();
-                mPlacesClient.fetchPlace(fetchPlaceRequest).addOnSuccessListener(fetchPlaceResponse -> {
-                    LatLng latLng = fetchPlaceResponse.getPlace().getLatLng();
-                    //note anything other than lat lng will be null since i specified in the request that i only need latlng
-                    if (latLng != null) {
-                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom
-                                (new LatLng(latLng.latitude, latLng.longitude), DEFAULT_ZOOM));
-                    }
-                }).addOnFailureListener(e -> {
-                    Log.i(TAG, "onFailure: " + e.getMessage());
-                    if (e instanceof ApiException)
-                        Log.i(TAG, "onFailure: status code: " + ((ApiException) e).getStatusCode());
-                });
+                imm.hideSoftInputFromWindow(contentMapsBinding.searchBar.getWindowToken(), 0);
+
+                fetchPlace(selectedPrediction.getPlaceId());
             }
 
             @Override
@@ -301,192 +241,132 @@ public class MapsActivity extends AppCompatActivity implements
 
             }
         });
-    }
 
-    private void findPlaceByName(String placeName) {
-        AutocompleteSessionToken autocompleteSessionToken = AutocompleteSessionToken.newInstance();
-        Log.i(TAG, "afterTextChanged: " + placeName);
-        FindAutocompletePredictionsRequest predictionsRequest = FindAutocompletePredictionsRequest.builder()
-                .setTypeFilter(TypeFilter.ADDRESS)
-                .setCountry(getCountry())
-                .setSessionToken(autocompleteSessionToken)
-                .setQuery(placeName)
-                .build();
-        mPlacesClient.findAutocompletePredictions(predictionsRequest)
-                .addOnSuccessListener(findAutocompletePredictionsResponse -> {
-            if (findAutocompletePredictionsResponse != null) {
-                placesPredictionList = findAutocompletePredictionsResponse.getAutocompletePredictions();
-                List<String> placesPredictionStringList = new ArrayList<>();
-                for (int i = 0; i < placesPredictionList.size(); i++) {
-                    String place = placesPredictionList.get(i).getFullText(null).toString();
-                    placesPredictionStringList.add(place);
-                }
-                materialSearchBar.updateLastSuggestions(placesPredictionStringList);
-                if (!materialSearchBar.isSuggestionsVisible()) {
-                    materialSearchBar.showSuggestionsList();
-                }
-            }
-        }).addOnFailureListener(e ->
-                Log.i(TAG, "onFailure: " + e.getMessage()));
-    }
-
-    private void checkLocationPermission() {
-        String[] perms = {Manifest.permission.ACCESS_FINE_LOCATION};
-        if (EasyPermissions.hasPermissions(this, perms)) {
-            // Already have permission, do the thing
-            Log.d(TAG, "methodRequiresPermission: " + getString(R.string.all_good_get_location));
-            getDeviceLocation();
-        } else {
-            // Do not have permissions, request them now
-            EasyPermissions.requestPermissions(this, getString(R.string.location_rationale),
-                    RC_LOCATION, perms);
-            Log.d(TAG, "methodRequiresTwoPermission: " + getString(R.string.req_perm));
-        }
-    }
-
-    /**try to get last known location and if it fails get current location*/
-    private void getDeviceLocation() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-            @SuppressLint("MissingPermission")
+        contentMapsBinding.searchBar.addTextChangeListener(new TextWatcher() {
             @Override
-            public void onSuccess(Location location) {
-                mLastKnownLocation = location;
-                if (mLastKnownLocation != null) {
-                    /*last known location found move camera on it*/
-                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                } else {
-                    /*last known location not found*/
-                    final LocationRequest locationRequest = LocationRequest.create();
-                    locationRequest.setInterval(10000);
-                    locationRequest.setFastestInterval(5000);
-                    locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                    mLocationCallback = new LocationCallback() {
-                        @Override
-                        public void onLocationResult(LocationResult locationResult) {
-                            super.onLocationResult(locationResult);
-                            mLastKnownLocation = locationResult.getLastLocation();
-                            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback); //to get location only once and remove updates
-                        }
-                    };
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //find prediction using autocomplete prediction
+                if (s.length() >= 2) {
+                    FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
+                            .setQuery(s.toString())
+                            .setTypeFilter(TypeFilter.ADDRESS)
+                            .build();
 
-                    mFusedLocationProviderClient.requestLocationUpdates(locationRequest, mLocationCallback, null);
-
+                    mPlacesClient.findAutocompletePredictions(request)
+                            .addOnSuccessListener(response -> {
+                                placesPredictionList = response.getAutocompletePredictions();
+                                List<String> suggestionsList = new ArrayList<>();
+                                for (AutocompletePrediction prediction : placesPredictionList) {
+                                    suggestionsList.add(prediction.getFullText(null).toString());
+                                }
+                                contentMapsBinding.searchBar.updateLastSuggestions(suggestionsList);
+                                contentMapsBinding.searchBar.showSuggestionsList();
+                            })
+                            .addOnFailureListener(exception -> Log.d(TAG, exception.getMessage()));
                 }
             }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(MapsActivity.this, "Error getting location ", Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "onFailure: " + e.getMessage());
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = googleMap;
+    /**fetch place details from places API*/
+    private void fetchPlace(String placeId) {
+        final List<Place.Field> placeFields = Collections.singletonList(Place.Field.LAT_LNG);
+        FetchPlaceRequest request = FetchPlaceRequest.builder(placeId, placeFields).build();
 
+        mPlacesClient.fetchPlace(request).addOnSuccessListener(response -> {
+            Place place = response.getPlace();
+            LatLng latLng = place.getLatLng();
+            if (latLng != null) {
+                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            }
+        }).addOnFailureListener(exception -> Log.d(TAG, exception.getMessage()));
+    }
 
+    @SuppressLint("MissingPermission")
+    private void checkLocationPermission() {
+        if (EasyPermissions.hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            setUpMap();
+        } else {
+            EasyPermissions.requestPermissions(
+                    this,
+                    getString(R.string.rationale_location),
+                    RC_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+            );
+        }
+    }
+
+    private void setUpMap() {
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mGoogleMap.setMyLocationEnabled(true);
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                mLastKnownLocation = location;
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            }
+        });
 
+        LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10000)
+                .setFastestInterval(5000);
 
-        /*Move my location button from under searchView*/
-        if (mapView != null && mapView.findViewById(Integer.parseInt("1")) != null) {
-            View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);//false
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, -1);//true
-            layoutParams.setMargins(0, 0, 16, 8);
-        }
-
-
-        /*check if gps is enabled and request it if not enabled*/
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
-
-        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-        Task<LocationSettingsResponse> locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build());
-
-        locationSettingsResponseTask.addOnSuccessListener(locationSettingsResponse -> {
-            /*GPS is enabled on device*/
-            Log.i(TAG, "onSuccess: ");
-            getDeviceLocation();
-        }).addOnFailureListener(e -> {
-            Log.i(TAG, "onFailure: e instanceof ResolvableApiException" + (e instanceof ResolvableApiException));
-            /*GPS is disabled*/
-            if (e instanceof ResolvableApiException) {
-                ResolvableApiException resolvableApiException = (ResolvableApiException) e;
-                try {
-                    /*ask user to enable GPS and then onActivityResult will be called*/
-                    resolvableApiException.startResolutionForResult(MapsActivity.this, REQUEST_GPS_CODE);
-                } catch (IntentSender.SendIntentException ex) {
-                    Log.i(TAG, "onFailure: " + ex.getMessage());
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                    //todo mViewModel.updateLocation(latLng);
                 }
             }
-        });
+        };
 
-
-        /*on my location button hide search bar and close its places suggestions*/
-        mGoogleMap.setOnMyLocationButtonClickListener(() -> {
-            if (materialSearchBar.isSuggestionsVisible()) materialSearchBar.clearSuggestions();
-            if (materialSearchBar.isSearchEnabled()) materialSearchBar.disableSearch();
-            return false;
-        });
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == AppSettingsDialog.DEFAULT_SETTINGS_REQ_CODE) {
-            // Do something after user returned from app settings screen, like showing a Toast.
-            checkLocationPermission();
-        }
-        if (requestCode == REQUEST_GPS_CODE) {
-            if (resultCode == RESULT_OK) {
-                /*user enabled GPS*/
-                getDeviceLocation();
-            } else {
-                Toast.makeText(this, R.string.please_enable_gps, Toast.LENGTH_LONG).show();
-            }
-        }
+        mFusedLocationProviderClient.requestLocationUpdates(locationRequest, mLocationCallback, getMainLooper());
+        mGoogleMap.setMyLocationEnabled(true);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        // Forward results to EasyPermissions
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
     @Override
     public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
-        Log.d(TAG, "onPermissionsGranted: "+getString(R.string.perm_granted));
-        getDeviceLocation();
     }
 
     @Override
     public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
-        Log.d(TAG, "onPermissionsDenied: "+getString(R.string.perm_denied));
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             new AppSettingsDialog.Builder(this).build().show();
-            Log.d(TAG, "onPermissionsDenied: "+getString(R.string.perm_permanently_denied_go_to_settings));
-        }else {
-            Toast.makeText(this, R.string.cant_get_location_search_instead,Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+        setUpMap();
     }
 }

@@ -5,79 +5,64 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RatingBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import ganainy.dev.gymmasters.R;
 
-public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.UserViewHolder> {
-    private static final String TAG = "CategoriesAdapter";
-    private  List<Pair<String, Drawable>> categoryList;
-    private CategoryCallback categoryCallback;
+import ganainy.dev.gymmasters.databinding.CategoryItemBinding;
 
+public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.CategoryViewHolder> {
+
+    private List<Pair<String, Drawable>> categoryList;
+    private final CategoryCallback categoryCallback;
 
     public CategoriesAdapter(CategoryCallback categoryCallback) {
         this.categoryCallback = categoryCallback;
     }
 
-    public void setData(List<Pair<String, Drawable>> userList){
-        this.categoryList =userList;
+    public void setData(List<Pair<String, Drawable>> categoryList) {
+        this.categoryList = categoryList;
+        notifyDataSetChanged(); // Notify adapter of data changes
     }
-
 
     @NonNull
     @Override
-    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.category_item,
-                viewGroup, false);
-        return new CategoriesAdapter.UserViewHolder(view);
+    public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        CategoryItemBinding binding = CategoryItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new CategoryViewHolder(binding);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull UserViewHolder userViewHolder, int i) {
-        Pair<String, Drawable> currentCategory = categoryList.get(i);
+    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+        Pair<String, Drawable> currentCategory = categoryList.get(position);
 
-        if (categoryList.get(i).first!=null) {
-            userViewHolder.textViewCategoryName.setText(categoryList.get(i).first);
+        if (currentCategory.first != null) {
+            holder.binding.textViewCategoryName.setText(currentCategory.first);
         }
 
-        if (categoryList.get(i).second!=null) {
-            userViewHolder.categoryImageView.setImageDrawable(categoryList.get(i).second);
+        if (currentCategory.second != null) {
+            holder.binding.categoryImageView.setImageDrawable(currentCategory.second);
         }
+
+        holder.itemView.setOnClickListener(view -> {
+            categoryCallback.onCategorySelected(currentCategory.first);
+        });
     }
-
-
 
     @Override
     public int getItemCount() {
-        return categoryList ==null?0: categoryList.size();
+        return categoryList == null ? 0 : categoryList.size();
     }
 
+    public static class CategoryViewHolder extends RecyclerView.ViewHolder {
+        private final CategoryItemBinding binding;
 
-    public class UserViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.categoryImageView)
-        ImageView categoryImageView;
-
-        @BindView(R.id.textViewCategoryName)
-        TextView textViewCategoryName;
-
-        public UserViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-
-            itemView.setOnClickListener(view -> {
-              categoryCallback.onCategorySelected(categoryList.get(getAdapterPosition()).first);
-            });
-
+        public CategoryViewHolder(@NonNull CategoryItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
         }
     }
-
-
 }

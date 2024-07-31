@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
@@ -15,10 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
 import ganainy.dev.gymmasters.R;
 
-import butterknife.ButterKnife;
+import ganainy.dev.gymmasters.databinding.CreateExerciseFragmentBinding;
+import ganainy.dev.gymmasters.databinding.FragmentExcerciesBinding;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
 
 /**
@@ -26,7 +27,7 @@ import ganainy.dev.gymmasters.ui.main.ActivityCallback;
  */
 public class ExercisesCategoriesFragment extends Fragment {
 
-
+    private FragmentExcerciesBinding binding;
     public static final String SELECTED_MUSCLE = "selectedMuscle";
     public static final String TRICEPS = "triceps";
     public static final String CHEST = "chest";
@@ -37,12 +38,11 @@ public class ExercisesCategoriesFragment extends Fragment {
     public static final String CARDIO = "cardio";
     public static final String LOWERLEG = "lowerleg";
     public static final String SHOWALL = "showall";
+    private RecyclerView recyclerView;
 
-    @BindView(R.id.recycler_view)
-    RecyclerView recyclerView;
 
     public ExercisesCategoriesFragment() {
-        // Required empty public constructorp
+        // Required empty public constructor
     }
 
     public static Fragment newInstance() {
@@ -53,10 +53,15 @@ public class ExercisesCategoriesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view= inflater.inflate(R.layout.fragment_excercies, container, false);
-        ButterKnife.bind(this, view);
-        return view;
+        binding = FragmentExcerciesBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+         recyclerView=binding.recyclerView;
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override

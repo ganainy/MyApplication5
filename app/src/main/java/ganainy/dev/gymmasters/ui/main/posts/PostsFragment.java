@@ -5,9 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -17,52 +14,22 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
-
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.PostsFragmentBinding;
 import ganainy.dev.gymmasters.models.app_models.Exercise;
 import ganainy.dev.gymmasters.models.app_models.Post;
 import ganainy.dev.gymmasters.models.app_models.User;
 import ganainy.dev.gymmasters.models.app_models.Workout;
-
 import java.util.Collections;
 import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
 import ganainy.dev.gymmasters.utils.AuthUtils;
-
 import static ganainy.dev.gymmasters.ui.findUser.FindUserFragment.ALL;
 
 public class PostsFragment extends Fragment {
-    private static final String TAG = "PostsFragment";
-    public static final String SOURCE = "source";
     private PostsViewModel mViewModel;
     private PostsAdapter postsAdapter;
-
-
-    @BindView(R.id.errorTextView)
-    TextView errorTextView;
-
-    @BindView(R.id.empty_posts_layout)
-    ConstraintLayout emptyPostsLayout;
-
-    @BindView(R.id.loadingGroup)
-    Group loadingGroup;
-
-    @BindView(R.id.sharedRv)
-    RecyclerView recyclerView;
-
-  @BindView(R.id.loading_profile_layout)
-  FrameLayout loadingProfileLayout;
-
-    @OnClick(R.id.findUsersButton)
-    void openFindUsers() {
-        ActivityCallback activityCallback =(ActivityCallback) requireActivity();
-        activityCallback.onOpenFindUserFragment(ALL);
-    }
-
+    private PostsFragmentBinding binding;
 
     public static PostsFragment newInstance() {
         return new PostsFragment();
@@ -74,8 +41,8 @@ public class PostsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.posts_fragment, container, false);
-        ButterKnife.bind(this, view);
+        binding = PostsFragmentBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
         setupRecycler();
         return view;
     }
@@ -93,64 +60,57 @@ public class PostsFragment extends Fragment {
         mViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(), networkState -> {
             switch (networkState) {
                 case SUCCESS:
-                    errorTextView.setVisibility(View.GONE);
-                    emptyPostsLayout.setVisibility(View.GONE);
-                    loadingGroup.setVisibility(View.GONE);
+                    binding.errorTextView.setVisibility(View.GONE);
+                    binding.emptyPostsLayout.getRoot().setVisibility(View.GONE);
+                    binding.loadingGroup.setVisibility(View.GONE);
                     break;
                 case ERROR:
-                    errorTextView.setVisibility(View.VISIBLE);
-                    emptyPostsLayout.setVisibility(View.GONE);
-                    loadingGroup.setVisibility(View.GONE);
+                    binding.errorTextView.setVisibility(View.VISIBLE);
+                    binding.emptyPostsLayout.getRoot().setVisibility(View.GONE);
+                    binding.loadingGroup.setVisibility(View.GONE);
                     break;
                 case LOADING:
-                    errorTextView.setVisibility(View.GONE);
-                    emptyPostsLayout.setVisibility(View.GONE);
-                    loadingGroup.setVisibility(View.VISIBLE);
+                    binding.errorTextView.setVisibility(View.GONE);
+                    binding.emptyPostsLayout.getRoot().setVisibility(View.GONE);
+                    binding.loadingGroup.setVisibility(View.VISIBLE);
                     break;
                 case EMPTY:
-                    errorTextView.setVisibility(View.GONE);
-                    emptyPostsLayout.setVisibility(View.VISIBLE);
-                    loadingGroup.setVisibility(View.GONE);
+                    binding.errorTextView.setVisibility(View.GONE);
+                    binding.emptyPostsLayout.getRoot().setVisibility(View.VISIBLE);
+                    binding.loadingGroup.setVisibility(View.GONE);
                     break;
                 case STOP_LOADING:
                     break;
             }
-
         });
 
-
         mViewModel.getPostListLiveData().observe(getViewLifecycleOwner(), posts -> {
-
             Collections.sort(posts, (s1, s2) -> s2.getDateStamp().compareTo(s1.getDateStamp()));
             postsAdapter.setData(posts);
             postsAdapter.notifyDataSetChanged();
         });
 
-        /*called when we need to update single recycler item, for example when post is liked*/
-        mViewModel.getUpdatePostLiveData().observe(getViewLifecycleOwner(),postsEvent->{
+        mViewModel.getUpdatePostLiveData().observe(getViewLifecycleOwner(), postsEvent -> {
             Pair<List<Post>, Integer> postsPositionPair = postsEvent.getContentIfNotHandled();
-            if (postsPositionPair!=null){
+            if (postsPositionPair != null) {
                 postsAdapter.setData(postsPositionPair.first);
                 postsAdapter.notifyItemChanged(postsPositionPair.second);
             }
         });
 
-        /*show loading view after user is clicked until his profile is loaded and opened*/
-        mViewModel.getLoadingPostCreatorProfileLiveData().observe(getViewLifecycleOwner(),isProfileLoading->{
-            if (isProfileLoading)loadingProfileLayout.setVisibility(View.VISIBLE);
-                else loadingProfileLayout.setVisibility(View.GONE);
+        mViewModel.getLoadingPostCreatorProfileLiveData().observe(getViewLifecycleOwner(), isProfileLoading -> {
+            if (isProfileLoading) binding.loadingProfileLayout.getRoot().setVisibility(View.VISIBLE);
+            else binding.loadingProfileLayout.getRoot().setVisibility(View.GONE);
         });
     }
 
-    /**save logged user info to be accessed through app*/
     private void saveLoggedUser() {
-        mViewModel.getLoggedUser().observe(getViewLifecycleOwner(),loggedUser->{
-            AuthUtils.putUser(requireContext(),loggedUser);
+        mViewModel.getLoggedUser().observe(getViewLifecycleOwner(), loggedUser -> {
+            AuthUtils.putUser(requireContext(), loggedUser);
         });
     }
 
     private void setupRecycler() {
-
         postsAdapter = new PostsAdapter(requireActivity().getApplication(), new PostCallback() {
             @Override
             public void onExerciseClicked(Exercise exercise, Integer adapterPosition) {
@@ -164,9 +124,9 @@ public class PostsFragment extends Fragment {
 
             @Override
             public void onUserClicked(String postCreatorId) {
-                mViewModel.getUserById(postCreatorId).observe(getViewLifecycleOwner(),postCreatorEvent->{
+                mViewModel.getUserById(postCreatorId).observe(getViewLifecycleOwner(), postCreatorEvent -> {
                     User postCreator = postCreatorEvent.getContentIfNotHandled();
-                    if (postCreator!=null) {
+                    if (postCreator != null) {
                         ((ActivityCallback) requireActivity()).onOpenUserFragment(postCreator);
                     }
                 });
@@ -179,26 +139,29 @@ public class PostsFragment extends Fragment {
 
             @Override
             public void onPostComment(Post post, Integer postType) {
-                    openPostCommentFragment(post);
+                openPostCommentFragment(post);
             }
         });
 
         postsAdapter.setHasStableIds(true);
-        recyclerView.setItemAnimator(null);
+        binding.sharedRv.setItemAnimator(null);
 
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.sharedRv.getContext(),
                 DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        binding.sharedRv.addItemDecoration(dividerItemDecoration);
 
-        recyclerView.setAdapter(postsAdapter);
+        binding.sharedRv.setAdapter(postsAdapter);
 
-
+        /*todo binding.findUsersButton.setOnClickListener(v -> {
+            ActivityCallback activityCallback = (ActivityCallback) requireActivity();
+            activityCallback.onOpenFindUserFragment(ALL);
+        });*/
     }
 
     private void openPostCommentFragment(Post post) {
-        ActivityCallback activityCallback=(ActivityCallback) requireActivity();
+        ActivityCallback activityCallback = (ActivityCallback) requireActivity();
         activityCallback.onOpenPostCommentFragment(post);
-  }
+    }
 
     public void refreshPosts() {
         postsAdapter.setData(null);

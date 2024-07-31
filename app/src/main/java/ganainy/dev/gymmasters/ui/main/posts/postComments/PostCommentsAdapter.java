@@ -19,9 +19,12 @@ import org.ocpsoft.prettytime.PrettyTime;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.CommentItemBinding;
+import ganainy.dev.gymmasters.databinding.EmptyCommentsItemBinding;
+import ganainy.dev.gymmasters.databinding.LoadingItemBinding;
+import ganainy.dev.gymmasters.databinding.PostExerciseItemBinding;
+import ganainy.dev.gymmasters.databinding.PostWorkoutItemBinding;
 import ganainy.dev.gymmasters.models.app_models.Comment;
 import ganainy.dev.gymmasters.models.app_models.Exercise;
 import ganainy.dev.gymmasters.models.app_models.User;
@@ -75,6 +78,10 @@ public class PostCommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return null;//error
     }
 
+
+
+
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
 
@@ -112,290 +119,164 @@ public class PostCommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     }
 
+    public  class LoadingViewHolder extends RecyclerView.ViewHolder {
+        private final LoadingItemBinding binding;
+
+        public LoadingViewHolder(View view) {
+            super(view);
+            binding = LoadingItemBinding.bind(view);
+        }
+
+    }
+
 
     public class PostCommentViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.commenterImageView)
-        ImageView commenterImageView;
-
-        @BindView(R.id.commenterNameTextView)
-        TextView commenterNameTextView;
-
-        @BindView(R.id.commentTextView)
-        TextView commentTextView;
-
-        @BindView(R.id.commentDateTextView)
-        TextView commentDateTextView;
-
+        private final CommentItemBinding binding;
 
         public PostCommentViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            binding = CommentItemBinding.bind(view);
         }
 
         public void setDetails(PostComment postComment) {
             Pair<Comment, User> currentUserCommentPair = postComment.getUserCommentPair();
-            Glide.with(app).load(currentUserCommentPair.second.getPhoto())
+            Glide.with(app)
+                    .load(currentUserCommentPair.second.getPhoto())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.anonymous_profile))
                     .circleCrop()
-                    .into(commenterImageView);
+                    .into(binding.commenterImageView);
 
-            commenterNameTextView.setText(currentUserCommentPair.second.getName());
-
-            commentTextView.setText(currentUserCommentPair.first.getText());
-
-            commentDateTextView.setText(new PrettyTime().format(new Date(currentUserCommentPair.first.getDateCreated())));
+            binding.commenterNameTextView.setText(currentUserCommentPair.second.getName());
+            binding.commentTextView.setText(currentUserCommentPair.first.getText());
+            binding.commentDateTextView.setText(new PrettyTime().format(new Date(currentUserCommentPair.first.getDateCreated())));
         }
     }
 
     class PostExerciseViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.profileImageView)
-        ImageView profileImageView;
-
-        @BindView(R.id.userNameTextView)
-        TextView userNameTextView;
-
-        @BindView(R.id.dateTextView)
-        TextView dateTextView;
-
-        @BindView(R.id.exerciseOneImageView)
-        ImageView exerciseOneImageView;
-
-        @BindView(R.id.exerciseTwoImageView)
-        ImageView exerciseTwoImageView;
-
-        @BindView(R.id.exerciseNameTextView)
-        TextView exerciseNameTextView;
-
-        @BindView(R.id.likeButton)
-        ImageView likeButton;
-
-        @BindView(R.id.commentButton)
-        ImageView commentButton;
-
-        @BindView(R.id.commentCountTextView)
-        TextView commentCountTextView;
-
-        @BindView(R.id.likeCountTextView)
-        TextView likeCountTextView;
-
-        @BindView(R.id.likeImage)
-        ImageView likeImage;
-
-        @BindView(R.id.targetMuscleTextView)
-        TextView targetMuscleTextView;
+        private final PostExerciseItemBinding binding;
 
         public PostExerciseViewHolder(@NonNull View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            binding = PostExerciseItemBinding.bind(itemView);
         }
 
         public void setDetails(final PostComment postComment) {
             Exercise exercise = postComment.getPost().getExercise();
 
-            Glide.with(app).load(exercise.getCreatorImageUrl())
+            Glide.with(app)
+                    .load(exercise.getCreatorImageUrl())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.anonymous_profile))
                     .circleCrop()
-                    .into(profileImageView);
+                    .into(binding.profileImageView);
 
-            userNameTextView.setText(exercise.getCreatorName());
+            binding.userNameTextView.setText(exercise.getCreatorName());
+            binding.dateTextView.setText(new PrettyTime().format(new Date((Long.parseLong(exercise.getDate())))));
 
-            dateTextView.setText(new PrettyTime().format(new Date((Long.parseLong(exercise.getDate())))));
-
-            Glide.with(app).load(exercise.getPreviewPhotoOneUrl())
+            Glide.with(app)
+                    .load(exercise.getPreviewPhotoOneUrl())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.ic_exercise_grey))
-                    .into(exerciseOneImageView);
+                    .into(binding.exerciseOneImageView);
 
-            Glide.with(app).load(exercise.getPreviewPhotoTwoUrl())
+            Glide.with(app)
+                    .load(exercise.getPreviewPhotoTwoUrl())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.ic_exercise_2_grey))
-                    .into(exerciseTwoImageView);
+                    .into(binding.exerciseTwoImageView);
 
-            exerciseNameTextView.setText(exercise.getName());
-
-            targetMuscleTextView.setText(exercise.getBodyPart());
+            binding.exerciseNameTextView.setText(exercise.getName());
+            binding.targetMuscleTextView.setText(exercise.getBodyPart());
 
             if (exercise.getCommentList() != null)
-                commentCountTextView.setText(Long.toString(exercise.getCommentList().size()));
+                binding.commentCountTextView.setText(Long.toString(exercise.getCommentList().size()));
             else
-                commentCountTextView.setText("0");
+                binding.commentCountTextView.setText("0");
 
             if (exercise.getLikerIdList() != null)
-                likeCountTextView.setText(Long.toString(exercise.getLikerIdList().size()));
+                binding.likeCountTextView.setText(Long.toString(exercise.getLikerIdList().size()));
             else
-                likeCountTextView.setText("0");
+                binding.likeCountTextView.setText("0");
 
             if (exercise.getLikerIdList() != null &&
                     exercise.getLikerIdList().contains(AuthUtils.getLoggedUserId(app)))
-                likeImage.setImageResource(R.drawable.ic_like_blue);
+                binding.likeImage.setImageResource(R.drawable.ic_like_blue);
             else
-                likeImage.setImageResource(R.drawable.ic_like_grey);
+                binding.likeImage.setImageResource(R.drawable.ic_like_grey);
 
-
-            likeButton.setOnClickListener(v -> {
-                postCommentCallback.onPostLike(postComment.getPost());
-            });
-
-            commentButton.setOnClickListener(v -> {
-                postCommentCallback.onPostComment(postComment.getPost());
-            });
-
-            profileImageView.setOnClickListener(v->{
-                postCommentCallback.onUserClicked(exercise.getCreatorId());
-            });
-
-            userNameTextView.setOnClickListener(v->{
-                postCommentCallback.onUserClicked(exercise.getCreatorId());
-            });
-
-            exerciseOneImageView.setOnClickListener(v->
-                    postCommentCallback.onExerciseClicked(exercise));
-
-            exerciseTwoImageView.setOnClickListener(v->
-                    postCommentCallback.onExerciseClicked(exercise));
-
-            exerciseNameTextView.setOnClickListener(v->
-                    postCommentCallback.onExerciseClicked(exercise));
+            binding.likeButton.setOnClickListener(v -> postCommentCallback.onPostLike(postComment.getPost()));
+            binding.commentButton.setOnClickListener(v -> postCommentCallback.onPostComment(postComment.getPost()));
+            binding.profileImageView.setOnClickListener(v -> postCommentCallback.onUserClicked(exercise.getCreatorId()));
+            binding.userNameTextView.setOnClickListener(v -> postCommentCallback.onUserClicked(exercise.getCreatorId()));
+            binding.exerciseOneImageView.setOnClickListener(v -> postCommentCallback.onExerciseClicked(exercise));
+            binding.exerciseTwoImageView.setOnClickListener(v -> postCommentCallback.onExerciseClicked(exercise));
+            binding.exerciseNameTextView.setOnClickListener(v -> postCommentCallback.onExerciseClicked(exercise));
         }
     }
 
     class PostWorkoutViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.profileImageView)
-        ImageView profileImageView;
-
-        @BindView(R.id.userNameTextView)
-        TextView userNameTextView;
-
-        @BindView(R.id.dateTextView)
-        TextView dateTextView;
-
-        @BindView(R.id.workoutImageView)
-        ImageView workoutImageView;
-
-        @BindView(R.id.workoutNameTextView)
-        TextView workoutNameTextView;
-
-        @BindView(R.id.likeButton)
-        ImageView likeButton;
-
-        @BindView(R.id.commentButton)
-        ImageView commentButton;
-
-        @BindView(R.id.commentCountTextView)
-        TextView commentCountTextView;
-
-        @BindView(R.id.likeCountTextView)
-        TextView likeCountTextView;
-
-        @BindView(R.id.likeImage)
-        ImageView likeImage;
-
-        @BindView(R.id.workoutDurationTextView)
-        TextView workoutDurationTextView;
-
-        @BindView(R.id.workoutDifficultyTextView)
-        TextView workoutDifficultyTextView;
-
-        @BindView(R.id.difficultyBackgroundImageView)
-        ImageView difficultyBackgroundImageView;
+        private final PostWorkoutItemBinding binding;
 
         public PostWorkoutViewHolder(@NonNull View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            binding = PostWorkoutItemBinding.bind(itemView);
         }
 
         public void setDetails(PostComment postComment) {
-
             Workout workout = postComment.getPost().getWorkout();
 
-            Glide.with(app).load(workout.getCreatorImageUrl())
+            Glide.with(app)
+                    .load(workout.getCreatorImageUrl())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.anonymous_profile))
                     .circleCrop()
-                    .into(profileImageView);
+                    .into(binding.profileImageView);
 
-            userNameTextView.setText(workout.getCreatorName());
+            binding.userNameTextView.setText(workout.getCreatorName());
+            binding.workoutNameTextView.setText(workout.getName());
+            binding.dateTextView.setText(new PrettyTime().format(new Date((Long.parseLong(workout.getDate())))));
 
-            workoutNameTextView.setText(workout.getName());
-
-            dateTextView.setText(new PrettyTime().format(new Date((Long.parseLong(workout.getDate())))));
-
-            Glide.with(app).load(workout.getPhotoLink())
+            Glide.with(app)
+                    .load(workout.getPhotoLink())
                     .apply(new RequestOptions().placeholder(R.drawable.loading_animation).error(R.drawable.ic_exercise_grey))
-                    .into(workoutImageView);
+                    .into(binding.workoutImageView);
 
-            workoutDurationTextView.setText(workout.getDuration());
-
-            workoutDifficultyTextView.setText(workout.getLevel());
+            binding.workoutDurationTextView.setText(workout.getDuration());
+            binding.workoutDifficultyTextView.setText(workout.getLevel());
 
             if (workout.getCommentList() != null)
-                commentCountTextView.setText(Long.toString(workout.getCommentList().size()));
+                binding.commentCountTextView.setText(Long.toString(workout.getCommentList().size()));
             else
-                commentCountTextView.setText("0");
+                binding.commentCountTextView.setText("0");
 
             if (workout.getLikerIdList() != null)
-                likeCountTextView.setText(Long.toString(workout.getLikerIdList().size()));
+                binding.likeCountTextView.setText(Long.toString(workout.getLikerIdList().size()));
             else
-                likeCountTextView.setText("0");
-
+                binding.likeCountTextView.setText("0");
 
             if (workout.getLikerIdList() != null &&
                     workout.getLikerIdList().contains(AuthUtils.getLoggedUserId(app)))
-                likeImage.setImageResource(R.drawable.ic_like_blue);
+                binding.likeImage.setImageResource(R.drawable.ic_like_blue);
             else
-                likeImage.setImageResource(R.drawable.ic_like_grey);
-
+                binding.likeImage.setImageResource(R.drawable.ic_like_grey);
 
             switch (workout.getLevel().toLowerCase()) {
                 case "beginner":
-                    difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_green);
-                    workoutDifficultyTextView.setText(R.string.beginner);
+                    binding.difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_green);
+                    binding.workoutDifficultyTextView.setText(R.string.beginner);
                     break;
                 case "intermediate":
-                    difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_yellow);
-                    workoutDifficultyTextView.setText(R.string.intermediate);
+                    binding.difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_yellow);
+                    binding.workoutDifficultyTextView.setText(R.string.intermediate);
                     break;
                 case "professional":
-                    difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_red);
-                    workoutDifficultyTextView.setText(R.string.professional);
+                    binding.difficultyBackgroundImageView.setImageResource(R.drawable.ic_triangle_red);
+                    binding.workoutDifficultyTextView.setText(R.string.professional);
                     break;
             }
 
-
-            likeButton.setOnClickListener(v -> {
-                postCommentCallback.onPostLike(postComment.getPost());
-            });
-
-            commentButton.setOnClickListener(v -> {
-                postCommentCallback.onPostComment(postComment.getPost());
-            });
-
-            workoutNameTextView.setOnClickListener(v->
-                    postCommentCallback.onWorkoutClicked(workout));
-
-            workoutImageView.setOnClickListener(v->
-                    postCommentCallback.onWorkoutClicked(workout));
-
-            profileImageView.setOnClickListener(v->
-                    postCommentCallback.onUserClicked(workout.getCreatorId()));
-
-            userNameTextView.setOnClickListener(v->
-                    postCommentCallback.onUserClicked(workout.getCreatorId()));
-
+            binding.likeButton.setOnClickListener(v -> postCommentCallback.onPostLike(postComment.getPost()));
+            binding.commentButton.setOnClickListener(v -> postCommentCallback.onPostComment(postComment.getPost()));
+            binding.workoutNameTextView.setOnClickListener(v -> postCommentCallback.onWorkoutClicked(workout));
+            binding.workoutImageView.setOnClickListener(v -> postCommentCallback.onWorkoutClicked(workout));
+            binding.profileImageView.setOnClickListener(v -> postCommentCallback.onUserClicked(workout.getCreatorId()));
+            binding.userNameTextView.setOnClickListener(v -> postCommentCallback.onUserClicked(workout.getCreatorId()));
         }
     }
-
-    class LoadingViewHolder extends RecyclerView.ViewHolder {
-
-        public LoadingViewHolder(@NonNull View itemView) {
-            super(itemView);
-        }
     }
-
-    class EmptyCommentsViewHolder extends RecyclerView.ViewHolder {
-
-        public EmptyCommentsViewHolder(@NonNull View itemView) {
-            super(itemView);
-        }
-    }
-
-}

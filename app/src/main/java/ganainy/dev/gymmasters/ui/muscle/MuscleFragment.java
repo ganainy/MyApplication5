@@ -19,9 +19,9 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import java.util.ArrayList;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.LoadingLayoutShimmerBinding;
+import ganainy.dev.gymmasters.databinding.MuscleFragmentBinding;
 import ganainy.dev.gymmasters.models.app_models.Exercise;
 import ganainy.dev.gymmasters.shared_adapters.ExercisesAdapter;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
@@ -35,28 +35,14 @@ public class MuscleFragment extends Fragment {
     public static final String EXERCISE = "exercise";
     MuscleViewModel mViewModel;
 
-    @BindView(R.id.collapse_toolbar)
-    CollapsingToolbarLayout htab_collapse_toolbar;
-    @BindView(R.id.htab_header)
-    ImageView collapsingToolbarImage;
-    @BindView(R.id.search_view)
-    SearchView searchView;
-    @BindView(R.id.loading_layout_shimmer)
-    LinearLayout shimmerLoadingLayout;
-    @BindView(R.id.empty_layout)
-    ConstraintLayout emptyLayout;
-    @BindView(R.id.error_layout)
-    ConstraintLayout errorLayout;
-    @BindView(R.id.exercisesRecyclerView)
-    RecyclerView exercisesRecyclerView;
-
-
+    private MuscleFragmentBinding binding;
+    private LoadingLayoutShimmerBinding loadingLayoutShimmerBinding;
     private ExercisesAdapter exercisesAdapter;
 
-    public static MuscleFragment newInstance(String selectedMuscle){
-        MuscleFragment muscleFragment=new MuscleFragment();
-        Bundle bundle=new Bundle();
-        bundle.putString(SELECTED_MUSCLE,selectedMuscle);
+    public static MuscleFragment newInstance(String selectedMuscle) {
+        MuscleFragment muscleFragment = new MuscleFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(SELECTED_MUSCLE, selectedMuscle);
         muscleFragment.setArguments(bundle);
         return muscleFragment;
     }
@@ -64,8 +50,10 @@ public class MuscleFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.muscle_fragment, container, false);
-        ButterKnife.bind(this, view);
+        binding = MuscleFragmentBinding.inflate(inflater, container, false);
+        loadingLayoutShimmerBinding=LoadingLayoutShimmerBinding.bind(binding.loadingLayoutShimmer.getRoot());
+        View view = binding.getRoot();
+
         setupRecycler();
         setupSearchView();
         return view;
@@ -77,7 +65,7 @@ public class MuscleFragment extends Fragment {
 
         mViewModel = new ViewModelProvider(this).get(MuscleViewModel.class);
 
-        if (getArguments().getString(SELECTED_MUSCLE)!=null){
+        if (getArguments().getString(SELECTED_MUSCLE) != null) {
             String selectedMuscle = getArguments().getString(SELECTED_MUSCLE);
             setTabHeaderImage(selectedMuscle);
             mViewModel.getSelectedMuscleExercises(selectedMuscle);
@@ -91,57 +79,53 @@ public class MuscleFragment extends Fragment {
         mViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(), this::handleNetworkStateUi);
     }
 
-
-
     private void handleNetworkStateUi(NetworkState networkState) {
-        switch (networkState){
+        switch (networkState) {
             case SUCCESS:
-                errorLayout.setVisibility(View.GONE);
-                emptyLayout.setVisibility(View.GONE);
-                exercisesRecyclerView.setVisibility(View.VISIBLE);
-                shimmerLoadingLayout.setVisibility(View.GONE);
+                binding.errorLayout.getRoot().setVisibility(View.GONE);
+                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.exercisesRecyclerView.setVisibility(View.VISIBLE);
+                loadingLayoutShimmerBinding.getRoot().setVisibility(View.GONE);
                 break;
             case ERROR:
-                errorLayout.setVisibility(View.VISIBLE);
-                emptyLayout.setVisibility(View.GONE);
-                exercisesRecyclerView.setVisibility(View.GONE);
-                shimmerLoadingLayout.setVisibility(View.GONE);
+                binding.errorLayout.getRoot().setVisibility(View.VISIBLE);
+                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.exercisesRecyclerView.setVisibility(View.GONE);
+                loadingLayoutShimmerBinding.getRoot().setVisibility(View.GONE);
                 break;
             case LOADING:
-                errorLayout.setVisibility(View.GONE);
-                emptyLayout.setVisibility(View.GONE);
-                exercisesRecyclerView.setVisibility(View.GONE);
-                shimmerLoadingLayout.setVisibility(View.VISIBLE);
+                binding.errorLayout.getRoot().setVisibility(View.GONE);
+                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.exercisesRecyclerView.setVisibility(View.GONE);
+                loadingLayoutShimmerBinding.getRoot().setVisibility(View.VISIBLE);
                 break;
             case EMPTY:
-                errorLayout.setVisibility(View.GONE);
-                 emptyLayout.setVisibility(View.VISIBLE);
-                exercisesRecyclerView.setVisibility(View.GONE);
-                shimmerLoadingLayout.setVisibility(View.GONE);
+                binding.errorLayout.getRoot().setVisibility(View.GONE);
+                binding.emptyLayout.getRoot().setVisibility(View.VISIBLE);
+                binding.exercisesRecyclerView.setVisibility(View.GONE);
+                loadingLayoutShimmerBinding.getRoot().setVisibility(View.GONE);
                 break;
         }
     }
-
 
     /**
      * set header image based on selected muscle from previous fragment
      */
     private void setTabHeaderImage(String selectedMuscle) {
-        collapsingToolbarImage.setImageResource(MiscellaneousUtils.getImageId(requireActivity(), selectedMuscle));
+        binding.htabHeader.setImageResource(MiscellaneousUtils.getImageId(requireActivity(), selectedMuscle));
     }
 
     private void setupRecycler() {
-
         //handle click of certain exercise
         exercisesAdapter = new ExercisesAdapter(requireActivity(), clickedExercise -> {
             ((ActivityCallback) requireActivity()).openExerciseFragment(clickedExercise);
         });
-        exercisesRecyclerView.setAdapter(exercisesAdapter);
+        binding.exercisesRecyclerView.setAdapter(exercisesAdapter);
     }
 
     private void setupSearchView() {
-        //do filtering when i type in search or click search
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        //do filtering when I type in search or click search
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
                 return false;
@@ -149,9 +133,9 @@ public class MuscleFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String queryString) {
-                ArrayList<Exercise> filteredExercises=new ArrayList<>();
-                for (Exercise exercise:mViewModel.getSelectedMuscleExerciseList()){
-                    if (exercise.getName().toLowerCase().contains(queryString)){
+                ArrayList<Exercise> filteredExercises = new ArrayList<>();
+                for (Exercise exercise : mViewModel.getSelectedMuscleExerciseList()) {
+                    if (exercise.getName().toLowerCase().contains(queryString)) {
                         filteredExercises.add(exercise);
                     }
                 }
@@ -161,5 +145,4 @@ public class MuscleFragment extends Fragment {
             }
         });
     }
-
 }

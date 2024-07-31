@@ -19,131 +19,31 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.FindUsersFragmentBinding;
 import ganainy.dev.gymmasters.models.app_models.User;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
-import ganainy.dev.gymmasters.utils.NetworkChangeReceiver;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+public class FindUserFragment extends Fragment {
 
-public class FindUserFragment extends Fragment  {
     private static final String TAG = FindUserFragment.class.getSimpleName();
     public static final String SOURCE = "source";
     public static final String ALL = "all";
     public static final String FOLLOWERS = "followers";
     public static final String FOLLOWING = "following";
 
-    /*this can be used to show all users/ followers of logged user or people who logged user is
-     following*/
     List<User> users = new ArrayList<>();
     List<User> filteredUsers = new ArrayList<>();
 
     private UserAdapter userAdapter;
     private FindUserViewModel mViewModel;
-
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
-
-    @BindView(R.id.noNewsFeedTextView)
-    TextView notFoundTextView;
-
-    @BindView(R.id.loadingProgressbar)
-    ProgressBar loadingProgressbar;
-
-    @BindView(R.id.findUsersButton)
-    Button findButton;
-
-    @BindView(R.id.bgImageView)
-    ImageView bgImageView;
-
-    @BindView(R.id.usersRecycler)
-    RecyclerView recyclerView;
-
-    @BindView(R.id.no_users_layout)
-    ConstraintLayout noUsersLayout;
-
-    @BindView(R.id.no_followers_layout)
-    ConstraintLayout noFollowersLayout;
-
-    @BindView(R.id.no_following_layout)
-    ConstraintLayout noFollowingLayout;
-
-    @BindView(R.id.titleTextView)
-    TextView titleTextView;
-
-    @BindView(R.id.searchView)
-    SearchView searchView;
-
-    @BindView(R.id.spacer)
-    Space spacer;
-
-    @BindView(R.id.backArrowImageView)
-    ImageView backArrowImageView;
-
-    @BindView(R.id.filterImageView)
-    ImageView filterImageView;
-
-    @OnClick(R.id.filterImageView)
-    void showSearchView() {
-        showSearchViewLayout();
-    }
-
-    private void showSearchViewLayout() {
-        filterImageView.setVisibility(View.GONE);
-        backArrowImageView.setVisibility(View.GONE);
-        spacer.setVisibility(View.GONE);
-        titleTextView.setVisibility(View.GONE);
-        searchView.setVisibility(View.VISIBLE);
-    }
-
-    @OnClick(R.id.searchView)
-    void filterUsers() {
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                filteredUsers.clear();
-                for (User user : users) {
-                    if (user.getName().contains(s)) {
-                        filteredUsers.add(user);
-                    }
-                }
-                userAdapter.setData(filteredUsers);
-                userAdapter.notifyDataSetChanged();
-                return true;
-            }
-        });
-
-        searchView.setOnCloseListener(() -> {
-            hideSearchViewLayout();
-            return false;
-        });
-    }
-
-    private void hideSearchViewLayout() {
-        filterImageView.setVisibility(View.VISIBLE);
-        backArrowImageView.setVisibility(View.VISIBLE);
-        spacer.setVisibility(View.VISIBLE);
-        titleTextView.setVisibility(View.VISIBLE);
-        searchView.setVisibility(View.GONE);
-    }
-
-    @OnClick(R.id.backArrowImageView)
-    void onBackArrowClick() {
-        requireActivity().onBackPressed();
-    }
-
+    private FindUsersFragmentBinding binding;
 
     public static FindUserFragment newInstance(String filterType) {
         FindUserFragment findUserFragment = new FindUserFragment();
@@ -159,19 +59,18 @@ public class FindUserFragment extends Fragment  {
 
         mViewModel = new ViewModelProvider(this).get(FindUserViewModel.class);
 
-        //this fragment called from more than one source so we differ with SOURCE value
-        if (getArguments()!=null && getArguments().getString(SOURCE) != null) {
+        if (getArguments() != null && getArguments().getString(SOURCE) != null) {
             switch (getArguments().getString(SOURCE)) {
                 case ALL:
-                    titleTextView.setText(R.string.users_list);
+                    binding.titleTextView.setText(R.string.users_list);
                     mViewModel.loadAllUsers();
                     break;
                 case FOLLOWERS:
-                    titleTextView.setText(R.string.my_followers);
+                    binding.titleTextView.setText(R.string.my_followers);
                     mViewModel.loadFollowersIds();
                     break;
                 case FOLLOWING:
-                    titleTextView.setText(R.string.users_iam_following);
+                    binding.titleTextView.setText(R.string.users_iam_following);
                     mViewModel.loadFollowingId();
                     break;
             }
@@ -179,36 +78,34 @@ public class FindUserFragment extends Fragment  {
 
         mViewModel.getNoUsersLiveData().observe(getViewLifecycleOwner(), noUserType -> {
             switch (noUserType) {
-
                 case NO_FOLLOWERS:
-                    noUsersLayout.setVisibility(View.GONE);
-                    noFollowersLayout.setVisibility(View.VISIBLE);
-                    noFollowingLayout.setVisibility(View.GONE);
+                    binding.noUsersLayout.getRoot().setVisibility(View.GONE);
+                    binding.noFollowersLayout.getRoot().setVisibility(View.VISIBLE);
+                    binding.noFollowingLayout.getRoot().setVisibility(View.GONE);
                     break;
                 case NO_FOLLOWING:
-                    noUsersLayout.setVisibility(View.GONE);
-                    noFollowersLayout.setVisibility(View.GONE);
-                    noFollowingLayout.setVisibility(View.VISIBLE);
+                    binding.noUsersLayout.getRoot().setVisibility(View.GONE);
+                    binding.noFollowersLayout.getRoot().setVisibility(View.GONE);
+                    binding.noFollowingLayout.getRoot().setVisibility(View.VISIBLE);
                     break;
                 case NO_USERS:
-                    noUsersLayout.setVisibility(View.VISIBLE);
-                    noFollowersLayout.setVisibility(View.GONE);
-                    noFollowingLayout.setVisibility(View.GONE);
+                    binding.noUsersLayout.getRoot().setVisibility(View.VISIBLE);
+                    binding.noFollowersLayout.getRoot().setVisibility(View.GONE);
+                    binding.noFollowingLayout.getRoot().setVisibility(View.GONE);
                     break;
             }
         });
 
-
         mViewModel.followingUserTransformation.observe(getViewLifecycleOwner(), followingUser -> {
-            //must subscribe to trigger transformation
+            // Subscribe to trigger transformation
         });
 
         mViewModel.followerUserTransformation.observe(getViewLifecycleOwner(), followingUser -> {
-            //must subscribe to trigger transformation
+            // Subscribe to trigger transformation
         });
 
         mViewModel.userWithRatingTransformation.observe(getViewLifecycleOwner(), userWithRating -> {
-            //must subscribe to trigger transformation
+            // Subscribe to trigger transformation
         });
 
         mViewModel.userWithRatingAndFollowerCountTransformation.observe(getViewLifecycleOwner(), userWithRatingAndFollowerCount -> {
@@ -220,46 +117,88 @@ public class FindUserFragment extends Fragment  {
 
         mViewModel.getLoadingLiveData().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading)
-                loadingProgressbar.setVisibility(View.VISIBLE);
+                binding.loadingProgressbar.setVisibility(View.VISIBLE);
             else
-                loadingProgressbar.setVisibility(View.GONE);
+                binding.loadingProgressbar.setVisibility(View.GONE);
         });
-
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.find_users_fragment, container, false);
-        ButterKnife.bind(this, view);
+        binding = FindUsersFragmentBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
 
         setupRecycler();
+
+        // Set up click listeners
+        binding.filterImageView.setOnClickListener(v -> showSearchViewLayout());
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filteredUsers.clear();
+                for (User user : users) {
+                    if (user.getName().contains(newText)) {
+                        filteredUsers.add(user);
+                    }
+                }
+                userAdapter.setData(filteredUsers);
+                userAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+
+        binding.searchView.setOnCloseListener(() -> {
+            hideSearchViewLayout();
+            return false;
+        });
+
+        binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());
+
         return view;
+    }
+
+    private void showSearchViewLayout() {
+        binding.filterImageView.setVisibility(View.GONE);
+        binding.backArrowImageView.setVisibility(View.GONE);
+        binding.spacer.setVisibility(View.GONE);
+        binding.titleTextView.setVisibility(View.GONE);
+        binding.searchView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideSearchViewLayout() {
+        binding.filterImageView.setVisibility(View.VISIBLE);
+        binding.backArrowImageView.setVisibility(View.VISIBLE);
+        binding.spacer.setVisibility(View.VISIBLE);
+        binding.titleTextView.setVisibility(View.VISIBLE);
+        binding.searchView.setVisibility(View.GONE);
     }
 
     private void setupRecycler() {
         userAdapter = new UserAdapter(requireActivity(), (user, adapterPosition) -> {
-            ((ActivityCallback)requireActivity()).onOpenUserFragment(user);
+            ((ActivityCallback) requireActivity()).onOpenUserFragment(user);
         });
 
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        binding.usersRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-               /* int lastVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findLastVisibleItemPosition();
-                if(lastVisibleItemPosition>=users.size()-1){
-                    Log.d(TAG, "onScrolled: "+lastVisibleItemPosition);
-                    mViewModel.getMoreUsers(users.get(users.size()-1).getId());
-                }*/
+                /* int lastVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findLastVisibleItemPosition();
+                if(lastVisibleItemPosition >= users.size() - 1) {
+                    Log.d(TAG, "onScrolled: " + lastVisibleItemPosition);
+                    mViewModel.getMoreUsers(users.get(users.size() - 1).getId());
+                } */
             }
         });
 
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.usersRecycler.getContext(),
                 DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(dividerItemDecoration);
-        recyclerView.setAdapter(userAdapter);
+        binding.usersRecycler.addItemDecoration(dividerItemDecoration);
+        binding.usersRecycler.setAdapter(userAdapter);
     }
-
 }
-

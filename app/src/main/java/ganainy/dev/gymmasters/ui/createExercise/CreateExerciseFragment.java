@@ -23,10 +23,9 @@ import android.widget.TextView;
 import com.github.lzyzsd.circleprogress.CircleProgress;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.CreateExerciseFragmentBinding;
 import ganainy.dev.gymmasters.utils.ApplicationViewModelFactory;
 
 import static ganainy.dev.gymmasters.ui.main.exercisesCategories.ExercisesCategoriesFragment.ABS;
@@ -41,53 +40,59 @@ import static ganainy.dev.gymmasters.ui.main.exercisesCategories.ExercisesCatego
 
 public class CreateExerciseFragment extends Fragment {
 
+    private CreateExerciseFragmentBinding binding;
     private static final int PICK_IMAGE = 101;
     private static final int PICK_IMAGE2 = 102;
     public static final String SELECT_PICTURE = "Select Picture";
 
-    @BindView(R.id.bodyPartSpinner)
-    Spinner bodyPartSpinner;
-    @BindView(R.id.mechanicSpinner)
-    Spinner mechanicSpinner;
-    @BindView(R.id.nameEditText)
-    TextView nameEditText;
-        @BindView(R.id.executionEditText)
-    TextView executionEditText;
-    @BindView(R.id.additionalNotesEditText)
-    TextView additionalNotesEditText;
-    @BindView(R.id.workoutImageView)
-    ImageView firstExercisePhoto;
-    @BindView(R.id.addExercisePhoto2)
-    ImageView secondExercisePhoto;
-    @BindView(R.id.parentScroll)
-    ScrollView parentScroll;
-    @BindView(R.id.loadingLayout)
-    ConstraintLayout loadingLayout;
-    @BindView(R.id.circle_progress)
-    CircleProgress circleProgress;
-    @BindView(R.id.exerciseNameDot)
-    ImageView exerciseNameDot;
-    @BindView(R.id.executionDot)
-    ImageView executionDot;
-    @BindView(R.id.mechanicDot)
-    ImageView mechanicDot;
-    @BindView(R.id.targetedMuscleDot)
-    ImageView targetedMuscleDot;
-    @BindView(R.id.exerciseImagesDot)
-    ImageView exerciseImagesDot;
 
-    @OnClick(R.id.backArrowImageView)
-    public void onViewClicked() {
-        requireActivity().onBackPressed();
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = CreateExerciseFragmentBinding.inflate(inflater, container, false);
+        muscleSpinnerCode();
+        mechanicSpinnerCode();
+        return binding.getRoot();
     }
 
-    @OnClick(R.id.saveButton)
-    void saveExercise() {
-        mViewModel.saveExercise(nameEditText.getText().toString(), executionEditText.getText().toString(), additionalNotesEditText.getText().toString());
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+         bodyPartSpinner= binding.bodyPartSpinner;
+         mechanicSpinner= binding.mechanicSpinner;
+         nameEditText= binding.nameEditText;
+         executionEditText= binding.executionEditText;
+         additionalNotesEditText= binding.additionalNotesEditText;
+         firstExercisePhoto= binding.workoutImageView;
+         secondExercisePhoto= binding.addExercisePhoto2;
+         parentScroll= binding.parentScroll;
+         loadingLayout= binding.loadingLayout.getRoot();
+         circleProgress= binding.loadingLayout.circleProgress;
+         exerciseNameDot= binding.exerciseNameDot;
+         executionDot= binding.executionDot;
+         mechanicDot= binding.mechanicDot;
+         targetedMuscleDot= binding.targetedMuscleDot;
+         exerciseImagesDot= binding.exerciseImagesDot;
+
+        // Set up the click listener for the ImageView
+        binding.backArrowImageView.setOnClickListener(v -> onBackArrowClicked());
+
+        binding.saveButton.setOnClickListener(v ->    mViewModel.saveExercise(nameEditText.getText().toString(),
+                executionEditText.getText().toString(), additionalNotesEditText.getText().toString()));
+
+
+        binding.workoutImageView.setOnClickListener(v ->  getPhotoFromGallery());
+
+        binding.addExercisePhoto2.setOnClickListener(v ->  getPhoto2FromGallery());
+
     }
-
-
-    @OnClick(R.id.workoutImageView)
+    void getPhoto2FromGallery() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE2);
+    }
     void getPhotoFromGallery() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -95,13 +100,31 @@ public class CreateExerciseFragment extends Fragment {
         startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE);
     }
 
-    @OnClick(R.id.addExercisePhoto2)
-    void getPhoto2FromGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE2);
+    Spinner bodyPartSpinner;
+    Spinner mechanicSpinner;
+    TextView nameEditText;
+    TextView executionEditText;
+    TextView additionalNotesEditText;
+    ImageView firstExercisePhoto;
+    ImageView secondExercisePhoto;
+    ScrollView parentScroll;
+    ConstraintLayout loadingLayout;
+    CircleProgress circleProgress;
+    ImageView exerciseNameDot;
+    ImageView executionDot;
+    ImageView mechanicDot;
+    ImageView targetedMuscleDot;
+    ImageView exerciseImagesDot;
+
+
+    private void onBackArrowClicked() {
+        // Handle the back button click event
+        requireActivity().onBackPressed();
     }
+
+
+
+
 
     private CreateExerciseViewModel mViewModel;
 
@@ -110,15 +133,7 @@ public class CreateExerciseFragment extends Fragment {
         return new CreateExerciseFragment();
     }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.create_exercise_fragment, container, false);
-        ButterKnife.bind(this, view);
-        muscleSpinnerCode();
-        mechanicSpinnerCode();
-        return view;
-    }
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -149,7 +164,7 @@ public class CreateExerciseFragment extends Fragment {
 
 
         mViewModel.getUploadProgressLiveData().observe(getViewLifecycleOwner(), progress -> {
-            circleProgress.setProgress(progress);
+             circleProgress.setProgress(progress);
         });
 
 

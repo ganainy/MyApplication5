@@ -5,9 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -17,16 +14,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
-import ganainy.dev.gymmasters.R;
-import ganainy.dev.gymmasters.models.app_models.Exercise;
-import ganainy.dev.gymmasters.models.app_models.Workout;
-
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.WorkoutFragmentBinding;
+import ganainy.dev.gymmasters.models.app_models.Exercise;
+import ganainy.dev.gymmasters.models.app_models.Workout;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
 import ganainy.dev.gymmasters.utils.AuthUtils;
 import ganainy.dev.gymmasters.utils.SharedPrefUtils;
@@ -35,45 +29,16 @@ import static ganainy.dev.gymmasters.utils.SharedPrefUtils.IS_FIRST_SHOWING_OF_W
 
 public class WorkoutFragment extends Fragment {
     private static final String TAG = "SpecificWorkoutActivity";
-    private static final String MY_PREFS_NAME = "mSharedPref";
     public static final String WORKOUT = "workout";
     private Workout workout;
-
     private WorkoutViewModel workoutViewModel;
     private SpecificWorkoutAdapter specificWorkoutAdapter;
+    private WorkoutFragmentBinding binding;
 
-    @BindView(R.id.workoutRecycler)
-    RecyclerView workoutRecycler;
-
-    @BindView(R.id.deleteImageView)
-    ImageView deleteImageView;
-
-    @BindView(R.id.workoutHintLayout)
-    ConstraintLayout workoutHintLayout;
-
-    @BindView(R.id.titleTextView)
-    TextView titleTextView;
-
-    @OnClick(R.id.backArrowImageView)
-    void onBackArrowClick(){
-        requireActivity().onBackPressed();
-    }
-
-    @OnClick(R.id.deleteImageView)
-    void onDeleteImageClick(){
-        new AlertDialog.Builder(requireActivity())
-                .setTitle(R.string.delete_workout_question)
-                .setMessage(R.string.confirm_delete_workout)
-                .setIcon(R.drawable.ic_delete_black_24dp)
-                .setPositiveButton(R.string.delete, (dialog, which) -> deleteWorkout())
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-    }
-
-    public static WorkoutFragment newInstance(Workout workout){
-        WorkoutFragment workoutFragment=new WorkoutFragment();
-        Bundle bundle=new Bundle();
-        bundle.putParcelable(WORKOUT,workout);
+    public static WorkoutFragment newInstance(Workout workout) {
+        WorkoutFragment workoutFragment = new WorkoutFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(WORKOUT, workout);
         workoutFragment.setArguments(bundle);
         return workoutFragment;
     }
@@ -82,51 +47,43 @@ public class WorkoutFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.workout_fragment, container, false);
-        ButterKnife.bind(this, view);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment using View Binding
+        binding = WorkoutFragmentBinding.inflate(inflater, container, false);
         setupRecycler();
 
-        workoutHintLayout.findViewById(R.id.closeHintImageView).setOnClickListener(v->
-                workoutHintLayout.setVisibility(View.INVISIBLE));
+        binding.workoutHintLayout.closeHintImageView.setOnClickListener(v ->
+                binding.workoutHintLayout.getRoot().setVisibility(View.INVISIBLE));
 
-        return view;
+        return binding.getRoot();
     }
-
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        //todo improve db design and only save exercise id+sets+reps or time instead of whole exercise
+        workoutViewModel = new ViewModelProvider(this).get(WorkoutViewModel.class);
 
-        workoutViewModel=new ViewModelProvider(this).get(WorkoutViewModel.class);
+        if (getArguments() != null && getArguments().getParcelable(WORKOUT) != null) {
+            workout = getArguments().getParcelable(WORKOUT);
 
-        if (getArguments().getParcelable(WORKOUT)!=null){
-            workout=getArguments().getParcelable(WORKOUT);
+            if (workout != null) {
+                specificWorkoutAdapter.setData(workout.getWorkoutExerciseList());
+                specificWorkoutAdapter.notifyDataSetChanged();
+                showHintIfFirstViewedWorkout();
 
-            specificWorkoutAdapter.setData(workout.getWorkoutExerciseList());
-            specificWorkoutAdapter.notifyDataSetChanged();
-            showHintIfFirstViewedWorkout();
-
-            titleTextView.setText(workout.getName());
-            //only show delete fab if workout of logged in user(user coming from main fragment home)
-            if (workout.getCreatorId().equals(AuthUtils.getLoggedUserId(requireContext()))) {
-                deleteImageView.setVisibility(View.VISIBLE);
-            }
-            else {
-                deleteImageView.setVisibility(View.GONE);
+                binding.titleTextView.setText(workout.getName());
+                if (workout.getCreatorId().equals(AuthUtils.getLoggedUserId(requireContext()))) {
+                    binding.deleteImageView.setVisibility(View.VISIBLE);
+                } else {
+                    binding.deleteImageView.setVisibility(View.GONE);
+                }
             }
         }
-
     }
 
-
     private void setupRecycler() {
-         specificWorkoutAdapter = new SpecificWorkoutAdapter(requireActivity().getApplication(),
+        specificWorkoutAdapter = new SpecificWorkoutAdapter(requireActivity().getApplication(),
                 new ExerciseInsideWorkoutCallback() {
                     @Override
                     public void onTimeExerciseClicked(Exercise exercise, Integer adapterPosition) {
@@ -139,36 +96,32 @@ public class WorkoutFragment extends Fragment {
                     }
                 });
 
-        workoutRecycler.setAdapter(specificWorkoutAdapter);
+        binding.workoutRecycler.setAdapter(specificWorkoutAdapter);
     }
 
     private void openSelectedExerciseFragment(Exercise exercise) {
-        ((ActivityCallback)requireActivity()).openExerciseFragment(exercise);
+        ((ActivityCallback) requireActivity()).openExerciseFragment(exercise);
     }
 
-
-
     private void deleteWorkout() {
-        //todo move to view model and add success/failure listeners of db operations
-        //remove exercise data from db
+        // Remove exercise data from db
         final String workoutId = workout.getId();
         final String photoLink = workout.getPhotoLink();
 
-        FirebaseDatabase.getInstance().getReference(WORKOUT).child(workoutId).setValue(null); //delete workout data
-        FirebaseStorage.getInstance().getReference().child(photoLink).delete();//delete workout photo
+        FirebaseDatabase.getInstance().getReference(WORKOUT).child(workoutId).setValue(null); // Delete workout data
+        FirebaseStorage.getInstance().getReference().child(photoLink).delete(); // Delete workout photo
         Toast.makeText(requireActivity(), R.string.deleted_successfully, Toast.LENGTH_SHORT).show();
         requireActivity().onBackPressed();
     }
 
-    /**check if this is first time user viewing workout to show hint*/
+    /** Check if this is the first time user viewing workout to show hint */
     private void showHintIfFirstViewedWorkout() {
         Boolean isFirstShowingForWorkout = SharedPrefUtils.getBoolean(requireContext(),
                 IS_FIRST_SHOWING_OF_WORKOUT);
 
         if (isFirstShowingForWorkout) return;
 
-        workoutHintLayout.setVisibility(View.VISIBLE);
+        binding.workoutHintLayout.getRoot().setVisibility(View.VISIBLE);
         SharedPrefUtils.putBoolean(requireContext(), false, IS_FIRST_SHOWING_OF_WORKOUT);
     }
-
 }

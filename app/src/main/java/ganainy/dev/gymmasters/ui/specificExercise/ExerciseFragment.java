@@ -14,98 +14,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import ganainy.dev.gymmasters.R;
+import ganainy.dev.gymmasters.databinding.ExerciseFragmentBinding;
 import ganainy.dev.gymmasters.models.app_models.Exercise;
 import ganainy.dev.gymmasters.ui.main.ActivityCallback;
 
-public class ExerciseFragment extends LogFragment  {
+public class ExerciseFragment extends Fragment {
 
     public static final String ISOLATED = "isolated";
     public static final String COMPOUND = "compound";
     public static final String EXERCISE = "exercise";
 
     private ExerciseViewModel mViewModel;
-
-    @BindView(R.id.workoutImageView)
-    ImageView exerciseImageView;
-
-    @BindView(R.id.nameTextView)
-    TextView nameTextView;
-
-    @BindView(R.id.executionTextView)
-    TextView executionTextView;
-
-    @BindView(R.id.additionalNotesTextView)
-    TextView additionalNotesTextView;
-
-    @BindView(R.id.mechanicTextView)
-    TextView mechanicTextView;
-
-    @BindView(R.id.targetedMuscleTextView)
-    TextView targetedMuscleTextView;
-
-    @BindView(R.id.numOneEditText)
-    TextView numOneEditText;
-
-    @BindView(R.id.numTwoEditText)
-    TextView numTwoEditText;
-
-    @BindView(R.id.titleTextView)
-    TextView titleTextView;
-
-    @BindView(R.id.deleteImageView)
-    ImageView deleteImageView;
-
-    @BindView(R.id.exercise_deleted_layout)
-    ConstraintLayout exerciseDeletedLayout;
-
-    @BindView(R.id.showVideoButton)
-    Button showVideoButton;
-
-    @BindView(R.id.progress_bar)
-    ProgressBar progressBar;
-
-    @OnClick(R.id.backArrowImageView)
-    void onBackArrowClick() {
-        requireActivity().onBackPressed();
-    }
-
-    @OnClick(R.id.showVideoButton)
-    void switchToVideoButton() {
-        openYoutubeFragment();
-    }
-
-    private void openYoutubeFragment() {
-        ActivityCallback activityCallback = (ActivityCallback) requireActivity();
-        activityCallback.openYoutubeFragment(mViewModel.getExercise().getName());
-    }
-
-    @OnClick(R.id.mechanicQuestionMark)
-    void showMechanicInfo() {
-        showMechanicInfoDialog(mechanicTextView.getText().toString().toLowerCase());
-    }
-
-    @OnClick(R.id.deleteImageView)
-    public void onViewClicked() {
-        showConfirmDeleteDialog();
-    }
-
-    private void showConfirmDeleteDialog() {
-        new AlertDialog.Builder(requireActivity())
-                .setTitle(R.string.delete_exercise_q)
-                .setMessage(R.string.confirm_delete_exercise)
-                .setIcon(R.drawable.ic_delete_black_24dp)
-                .setPositiveButton(R.string.delete, (dialog, which) -> mViewModel.deleteExercise())
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-    }
-
-
+    private ExerciseFragmentBinding binding;
 
     public static ExerciseFragment newInstance(Exercise exercise) {
         ExerciseFragment exerciseFragment = new ExerciseFragment();
@@ -115,14 +39,16 @@ public class ExerciseFragment extends LogFragment  {
         return exerciseFragment;
     }
 
+    @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.exercise_fragment, container, false);
-        ButterKnife.bind(this, view);
+        binding = ExerciseFragmentBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
+
+        setupClickListeners();
         return view;
     }
-
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -138,16 +64,15 @@ public class ExerciseFragment extends LogFragment  {
             mViewModel.isLoggedUserExercise();
         }
 
-
         /*only show delete button if this exercise is owned by logged in user*/
         mViewModel.getIsLoggedUserExerciseLiveData().observe(getViewLifecycleOwner(), isLoggedUserExercise -> {
-            if (isLoggedUserExercise) deleteImageView.setVisibility(View.VISIBLE);
-            else deleteImageView.setVisibility(View.GONE);
+            if (isLoggedUserExercise) binding.deleteImageView.setVisibility(View.VISIBLE);
+            else binding.deleteImageView.setVisibility(View.GONE);
         });
 
         /*show/hide photo/youtube player based on user choice*/
         mViewModel.getExerciseSelectedImageLiveData().observe(getViewLifecycleOwner(), exerciseViewType -> {
-            switch (exerciseViewType){
+            switch (exerciseViewType) {
                 case IMAGE_ONE:
                     showFirstPhoto();
                     break;
@@ -165,13 +90,35 @@ public class ExerciseFragment extends LogFragment  {
                 Toast.makeText(requireActivity(), R.string.error_deleting_exercise, Toast.LENGTH_SHORT).show();
             }
         });
-            }
+    }
+
+    private void setupClickListeners() {
+        binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());
+        binding.showVideoButton.setOnClickListener(v -> openYoutubeFragment());
+        binding.mechanicQuestionMark.setOnClickListener(v -> showMechanicInfoDialog(binding.mechanicTextView.getText().toString().toLowerCase()));
+        binding.deleteImageView.setOnClickListener(v -> showConfirmDeleteDialog());
+    }
+
+    private void openYoutubeFragment() {
+        ActivityCallback activityCallback = (ActivityCallback) requireActivity();
+        activityCallback.openYoutubeFragment(mViewModel.getExercise().getName());
+    }
+
+    private void showConfirmDeleteDialog() {
+        new AlertDialog.Builder(requireActivity())
+                .setTitle(R.string.delete_exercise_q)
+                .setMessage(R.string.confirm_delete_exercise)
+                .setIcon(R.drawable.ic_delete_black_24dp)
+                .setPositiveButton(R.string.delete, (dialog, which) -> mViewModel.deleteExercise())
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
 
     private void showSecondPhoto() {
-        progressBar.setVisibility(View.GONE);
-        numOneEditText.setVisibility(View.GONE);
-        numTwoEditText.setVisibility(View.VISIBLE);
-        exerciseImageView.setImageDrawable(mViewModel.getSecondDrawable());
+        binding.progressBar.setVisibility(View.GONE);
+        binding.numOneEditText.setVisibility(View.GONE);
+        binding.numTwoEditText.setVisibility(View.VISIBLE);
+        binding.workoutImageView.setImageDrawable(mViewModel.getSecondDrawable());
     }
 
     private void initViewModel() {
@@ -179,47 +126,38 @@ public class ExerciseFragment extends LogFragment  {
     }
 
     private void showExerciseInUi(Exercise exercise) {
-        nameTextView.setText(exercise.getName());
-        titleTextView.setText(exercise.getName());
-        executionTextView.setText(exercise.getExecution());
-        mechanicTextView.setText(exercise.getMechanism());
-        targetedMuscleTextView.setText(exercise.getBodyPart());
-        if (exercise.getAdditional_notes() == null) additionalNotesTextView.setText(R.string.none);
-        else additionalNotesTextView.setText(exercise.getAdditional_notes());
+        binding.nameTextView.setText(exercise.getName());
+        binding.titleTextView.setText(exercise.getName());
+        binding.executionTextView.setText(exercise.getExecution());
+        binding.mechanicTextView.setText(exercise.getMechanism());
+        binding.targetedMuscleTextView.setText(exercise.getBodyPart());
+        if (exercise.getAdditional_notes() == null) binding.additionalNotesTextView.setText(R.string.none);
+        else binding.additionalNotesTextView.setText(exercise.getAdditional_notes());
     }
-
 
     private void showFirstPhoto() {
-        progressBar.setVisibility(View.GONE);
-        numOneEditText.setVisibility(View.VISIBLE);
-        numTwoEditText.setVisibility(View.GONE);
-        exerciseImageView.setImageDrawable(mViewModel.getFirstDrawable());
+        binding.progressBar.setVisibility(View.GONE);
+        binding.numOneEditText.setVisibility(View.VISIBLE);
+        binding.numTwoEditText.setVisibility(View.GONE);
+        binding.workoutImageView.setImageDrawable(mViewModel.getFirstDrawable());
     }
-
-
-
 
     private void showMechanicInfoDialog(String s) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setCancelable(false)
                 .setPositiveButton(R.string.got_it, (dialogInterface, i) -> {
-                    //Do nothing
+                    // Do nothing
                 });
 
-        //change message depending on type of mechanism , utility
+        // Change message depending on type of mechanism
         switch (s) {
-            case ISOLATED: {
-                builder.setMessage(
-                        getString(R.string.isolated_definition));
+            case ISOLATED:
+                builder.setMessage(getString(R.string.isolated_definition));
                 break;
-            }
-            case COMPOUND: {
+            case COMPOUND:
                 builder.setMessage(R.string.compound_definition);
                 break;
-            }
         }
         builder.create().show();
     }
-
-
 }
