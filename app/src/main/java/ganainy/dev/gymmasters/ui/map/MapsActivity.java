@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ganainy.dev.gymmasters.BuildConfig;
 import ganainy.dev.gymmasters.R;
 import ganainy.dev.gymmasters.databinding.ActivityMapsBinding;
 import ganainy.dev.gymmasters.databinding.ContentMapsBinding;
@@ -114,6 +115,10 @@ public class MapsActivity extends AppCompatActivity implements
         initBottomSheet();
         showMapFragment();
         checkLocationPermission();
+
+        /*hide the hint about the map activity on confirm click*/
+        mapHintBinding.buttonHint.setOnClickListener(view ->
+                contentMapsBinding.hintLayout.getRoot().setVisibility(View.GONE));
     }
 
     /**only show hint about the map activity if this is first time*/
@@ -124,6 +129,10 @@ public class MapsActivity extends AppCompatActivity implements
             SharedPrefUtils.putBoolean(this, false, IS_FIRST_SHOWING_MAP);
         }
     }
+
+
+
+
 
     private void initBottomSheet() {
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
@@ -138,7 +147,8 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void initPlacesApi() {
-        Places.initialize(this, getString(R.string.google_places_key));
+        String placesApiKey = BuildConfig.PLACES_API_KEY;
+        Places.initialize(this, placesApiKey);
         mPlacesClient = Places.createClient(this);
     }
 
@@ -305,6 +315,11 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void setUpMap() {
+        if (mGoogleMap == null) {
+            Toast.makeText(this,R.string.map_error,Toast.LENGTH_LONG).show();
+            return;
+        }
+
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling

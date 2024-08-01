@@ -174,12 +174,9 @@
     <string name="view">View</string>
     <string name="overall_rating">overall rating</string>
     <string name="not_added_yet">Not added yet</string>
-    <string name="google_map_key">PLACEHOLDER_FOR_API_KEY</string>
-    <!-- todo todo replace with places API key -->
-    <string name="google_places_key">placeholder_for_api_key</string>
+
     <string name="rationale_location">We need to access your location to find Gyms nearby</string>
     <!-- todo todo replace with request_id_token-->
     <string name="request_id_token">idk</string>
-    <!-- todo todo replace with youtube_v3_key-->
-    <string name="youtube_v3_key">idk\n</string>
+    <string name="map_error">Error loading the map</string>
 </resources>

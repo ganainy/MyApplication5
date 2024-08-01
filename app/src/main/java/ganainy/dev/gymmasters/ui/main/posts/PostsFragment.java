@@ -152,10 +152,10 @@ public class PostsFragment extends Fragment {
 
         binding.sharedRv.setAdapter(postsAdapter);
 
-        /*todo binding.findUsersButton.setOnClickListener(v -> {
+         binding.emptyPostsLayout.findUsersButton.setOnClickListener(v -> {
             ActivityCallback activityCallback = (ActivityCallback) requireActivity();
             activityCallback.onOpenFindUserFragment(ALL);
-        });*/
+        });
     }
 
     private void openPostCommentFragment(Post post) {

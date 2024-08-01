@@ -232,14 +232,14 @@ public class SignUpActivity extends AppCompatActivity {
         });
 
 
-
+        //todo fix authenticateUser is called twice when GO on keyboard is pressed
         //on softkeyboard action done sign up user
-        passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
+        /*passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
             if(actionId== EditorInfo.IME_ACTION_GO){
                 signUpViewModel.authenticateUser();
             }
             return false;
-        });
+        });*/
 
 
         setupGoogleSignIn();

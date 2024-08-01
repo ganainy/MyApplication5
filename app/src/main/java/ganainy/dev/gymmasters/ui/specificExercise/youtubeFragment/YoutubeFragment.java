@@ -19,14 +19,15 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 
 import ganainy.dev.gymmasters.R;
 import ganainy.dev.gymmasters.databinding.YoutubeFragmentBinding;
+import ganainy.dev.gymmasters.ui.specificExercise.ExerciseViewModel;
 import ganainy.dev.gymmasters.utils.ApplicationViewModelFactory;
 
 public class YoutubeFragment extends Fragment {
 
+
     private static final String NAME = "name";
     public static final String YOUTUBE_SEARCH_URL = "https://www.youtube.com/results?search_query=";
 
-    private YoutubeViewModel mViewModel;
     private YoutubeFragmentBinding binding;
 
     public static YoutubeFragment newInstance(String exerciseName) {
@@ -46,53 +47,20 @@ public class YoutubeFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        initViewModel();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        // Add YouTube player as fragment lifecycle observer to control release when fragment is destroyed
-        getViewLifecycleOwner().getLifecycle().addObserver(binding.youtubePlayerView);
-
-        if (getArguments() != null && getArguments().getString(NAME) != null) {
-            mViewModel.getExerciseVideoId(getArguments().getString(NAME));
+        // Retrieve the exercise name from arguments and set it in the ViewModel
+        if (getArguments() != null) {
+            String exerciseName = getArguments().getString(NAME);
+            openExerciseInYoutube(exerciseName);
         }
 
-        // Observe videoId and load video if available
-        mViewModel.getVideoIdLiveData().observe(getViewLifecycleOwner(), videoId -> {
-            if (videoId != null) {
-                binding.youtubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
-                    @Override
-                    public void onReady(@NonNull YouTubePlayer youTubePlayer) {
-                        youTubePlayer.loadVideo(videoId, mViewModel.getVideoCurrentSecond());
-                    }
 
-                    @Override
-                    public void onCurrentSecond(@NonNull YouTubePlayer youTubePlayer, float second) {
-                        mViewModel.setVideoCurrentSecond(second);
-                        super.onCurrentSecond(youTubePlayer, second);
-                    }
-                });
-            } else {
-                showOpenInYoutubeAlertDialog();
-            }
-        });
     }
 
-    private void initViewModel() {
-        ApplicationViewModelFactory applicationViewModelFactory = new ApplicationViewModelFactory(requireActivity().getApplication());
-        mViewModel = new ViewModelProvider(this, applicationViewModelFactory).get(YoutubeViewModel.class);
-    }
-
-    private void showOpenInYoutubeAlertDialog() {
-        new AlertDialog.Builder(requireActivity())
-                .setMessage(R.string.in_app_play_failed)
-                .setTitle(R.string.error_playing_video)
-                .setCancelable(false)
-                .setPositiveButton(R.string.yes, (dialog, id) -> {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(YOUTUBE_SEARCH_URL + mViewModel.getExerciseName()));
-                    startActivity(intent);
-                })
-                .setNegativeButton(R.string.no, null)
-                .create().show();
+    private void openExerciseInYoutube(String exerciseName) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(YOUTUBE_SEARCH_URL +exerciseName));
+        startActivity(intent);
     }
 }

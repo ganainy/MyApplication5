@@ -4,7 +4,6 @@ import static ganainy.dev.gymmasters.ui.findUser.FindUserFragment.ALL;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -68,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCallback 
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         // Access the included layout
-        appBarMainBinding = AppBarMainBinding.bind(binding.getRoot());
+        appBarMainBinding = AppBarMainBinding.bind(binding.container.getRoot());
 
         setContentView(binding.getRoot());
 

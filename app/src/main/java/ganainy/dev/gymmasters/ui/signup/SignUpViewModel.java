@@ -99,9 +99,10 @@ public class SignUpViewModel extends ViewModel {
                         saveUserInfoInRealtimeDb(userId);
                     } else {
                         //  sign in fails, display a message to the user.
-                        isLoadingLiveData.setValue(false);
                         toastLiveData.setValue(new Event<>(new Pair<>(R.string.signup_failed, 0)));
                     }
+                    isLoadingLiveData.setValue(false);
+
                 })
                 .addOnFailureListener(e -> {
                     //  sign in fails, display a message to the user.

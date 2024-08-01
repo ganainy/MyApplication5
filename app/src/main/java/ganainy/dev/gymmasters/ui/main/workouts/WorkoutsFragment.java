@@ -41,6 +41,7 @@ public class WorkoutsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = FragmentWorkoutsBinding.inflate(inflater, container, false);
+        setupRecycler();
         return binding.getRoot();
     }
 
@@ -51,8 +52,13 @@ public class WorkoutsFragment extends Fragment {
         workoutsViewModel = new ViewModelProvider(this).get(WorkoutsViewModel.class);
 
         workoutsViewModel.getWorkoutListLiveData().observe(getViewLifecycleOwner(), workouts -> {
-            workoutAdapter.setDataSource(workouts);
-            workoutAdapter.notifyDataSetChanged();
+            if (workouts == null || workouts.isEmpty()) {
+                // List is empty
+            } else {
+                // List has items
+                workoutAdapter.setDataSource(workouts);
+                workoutAdapter.notifyDataSetChanged();
+            }
         });
 
         workoutsViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(), this::handleNetworkStateUi);
@@ -65,25 +71,25 @@ public class WorkoutsFragment extends Fragment {
         switch (networkState) {
             case SUCCESS:
                 binding.errorLayout.getRoot().setVisibility(View.GONE);
-                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.noWorkoutsLayout.getRoot().setVisibility(View.GONE);
                 binding.workoutRecyclerView.setVisibility(View.VISIBLE);
                 binding.loadingLayoutShimmer.getRoot().setVisibility(View.GONE);
                 break;
             case ERROR:
                 binding.errorLayout.getRoot().setVisibility(View.VISIBLE);
-                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.noWorkoutsLayout.getRoot().setVisibility(View.GONE);
                 binding.workoutRecyclerView.setVisibility(View.GONE);
                 binding.loadingLayoutShimmer.getRoot().setVisibility(View.GONE);
                 break;
             case LOADING:
                 binding.errorLayout.getRoot().setVisibility(View.GONE);
-                binding.emptyLayout.getRoot().setVisibility(View.GONE);
+                binding.noWorkoutsLayout.getRoot().setVisibility(View.GONE);
                 binding.workoutRecyclerView.setVisibility(View.GONE);
                 binding.loadingLayoutShimmer.getRoot().setVisibility(View.VISIBLE);
                 break;
             case EMPTY:
                 binding.errorLayout.getRoot().setVisibility(View.GONE);
-                binding.emptyLayout.getRoot().setVisibility(View.VISIBLE);
+                binding.noWorkoutsLayout.getRoot().setVisibility(View.VISIBLE);
                 binding.workoutRecyclerView.setVisibility(View.GONE);
                 binding.loadingLayoutShimmer.getRoot().setVisibility(View.GONE);
                 break;
