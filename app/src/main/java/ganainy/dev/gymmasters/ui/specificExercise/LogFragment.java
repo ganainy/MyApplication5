@@ -36,11 +36,7 @@ public class LogFragment extends Fragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.d(TAG, "onActivityCreated: ");
-    }
+
 
     @Override
     public void onStart() {

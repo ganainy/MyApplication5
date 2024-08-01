@@ -49,8 +49,10 @@ public class UserWorkoutsFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        setupRecycler();
         mViewModel = new ViewModelProvider(this).get(UserWorkoutsViewModel.class);
         mViewModel.downloadLoggedUserWorkouts(getArguments().getString(USER_ID));
 
@@ -62,7 +64,10 @@ public class UserWorkoutsFragment extends Fragment {
         });
 
         mViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(), this::handleNetworkStateUi);
+
     }
+
+
 
     private void setupToolbarTitle(String username) {
         if (username != null)

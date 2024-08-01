@@ -48,6 +48,7 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
@@ -79,6 +80,7 @@ public class MapsActivity extends AppCompatActivity implements
 
     private static final int RC_LOCATION = 1;
     public static final int REQUEST_GPS_CODE = 101;
+    private static final int REQUEST_LOCATION_PERMISSION = 1;
     private final float DEFAULT_ZOOM = 18f;
     private static final String TAG = MapsActivity.class.getSimpleName();
     private MapViewModel mViewModel;
@@ -109,7 +111,6 @@ public class MapsActivity extends AppCompatActivity implements
 
         checkShowHint();
         enableFullScreen();
-        initMaterialSearchBar();
         initViewModel();
         initPlacesApi();
         initBottomSheet();
@@ -119,6 +120,24 @@ public class MapsActivity extends AppCompatActivity implements
         /*hide the hint about the map activity on confirm click*/
         mapHintBinding.buttonHint.setOnClickListener(view ->
                 contentMapsBinding.hintLayout.getRoot().setVisibility(View.GONE));
+
+
+        contentMapsBinding.buttonFindNearbyGym.setOnClickListener(v ->
+                // Get last known location
+                mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        mLastKnownLocation = location;
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                        mViewModel.findNearbyGyms(new LatLng(location.getLatitude(),location.getLongitude()));
+                    }
+                })
+
+                );
+
+        placeInfoCardBinding.closeImage.setOnClickListener(v ->
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
+
     }
 
     /**only show hint about the map activity if this is first time*/
@@ -159,8 +178,8 @@ public class MapsActivity extends AppCompatActivity implements
             Gym gym = gymEvent.getContentIfNotHandled();
             if (gym != null) {
                 placeInfoCardBinding.textViewRate.setText(getString(R.string.gym_rate, String.format("%.1f", gym.getRate())));
-                placeInfoCardBinding.textViewOpeningHours.setText(gym.getOpeningHours());
-                placeInfoCardBinding.textViewAddress.setText(gym.getAddress());
+                placeInfoCardBinding.openingHours.setText(gym.getOpeningHours());
+                placeInfoCardBinding.addressText.setText(gym.getAddress());
                 placeInfoCardBinding.nameShimmer.setText(gym.getName());
                 mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
@@ -202,89 +221,33 @@ public class MapsActivity extends AppCompatActivity implements
         decorView.setSystemUiVisibility(uiOptions);
     }
 
-    private void initMaterialSearchBar() {
-        contentMapsBinding.searchBar.setOnClickListener(view -> contentMapsBinding.searchBar.enableSearch());
 
-        contentMapsBinding.searchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
-            @Override
-            public void onSearchStateChanged(boolean enabled) {
-            }
 
-            @Override
-            public void onSearchConfirmed(CharSequence text) {
-                //todo findPlaceByName(text.toString());
-            }
 
-            @Override
-            public void onButtonClicked(int buttonCode) {
-                /*handle back button of material search bar*/
-                if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-                    contentMapsBinding.searchBar.disableSearch();
-                    contentMapsBinding.searchBar.clearSuggestions();
-                }
-            }
-        });
 
-        contentMapsBinding.searchBar.setSuggestionsClickListener(new SuggestionsAdapter.OnItemViewClickListener() {
-            @Override
-            public void OnItemClickListener(int position, View v) {
-                /*we only have place id (from FindAutocompletePredictionsRequest) and we need lat lng to be able to show place on map using places API*/
-                if (position >= placesPredictionList.size()) {
-                    return;
-                }
-                AutocompletePrediction selectedPrediction = placesPredictionList.get(position);
-                String suggestion = contentMapsBinding.searchBar.getLastSuggestions().get(position).toString();
-                contentMapsBinding.searchBar.setText(suggestion);
 
-                //wait one second before using clearSuggestions for it to work properly
-                new Handler().postDelayed(() -> contentMapsBinding.searchBar.clearSuggestions(), (1000));
 
-                //close soft keyboard
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(contentMapsBinding.searchBar.getWindowToken(), 0);
+    /**calculate an area of 30km around current user location*/
+        private LatLng[] calculateBounds(double centerLat, double centerLng) {
+            final double distanceKm=30.0;
+            final double EARTH_RADIUS_KM = 6371.0;
 
-                fetchPlace(selectedPrediction.getPlaceId());
-            }
+            double deltaLat = distanceKm / EARTH_RADIUS_KM;
+            double deltaLng = distanceKm / (EARTH_RADIUS_KM * Math.cos(Math.PI * centerLat / 180));
 
-            @Override
-            public void OnItemDeleteListener(int position, View v) {
+            double deltaLatDeg = Math.toDegrees(deltaLat);
+            double deltaLngDeg = Math.toDegrees(deltaLng);
 
-            }
-        });
+            double southwestLat = centerLat - deltaLatDeg;
+            double southwestLng = centerLng - deltaLngDeg;
+            double northeastLat = centerLat + deltaLatDeg;
+            double northeastLng = centerLng + deltaLngDeg;
 
-        contentMapsBinding.searchBar.addTextChangeListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
+            LatLng southwest = new LatLng(southwestLat, southwestLng);
+            LatLng northeast = new LatLng(northeastLat, northeastLng);
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //find prediction using autocomplete prediction
-                if (s.length() >= 2) {
-                    FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
-                            .setQuery(s.toString())
-                            .setTypeFilter(TypeFilter.ADDRESS)
-                            .build();
-
-                    mPlacesClient.findAutocompletePredictions(request)
-                            .addOnSuccessListener(response -> {
-                                placesPredictionList = response.getAutocompletePredictions();
-                                List<String> suggestionsList = new ArrayList<>();
-                                for (AutocompletePrediction prediction : placesPredictionList) {
-                                    suggestionsList.add(prediction.getFullText(null).toString());
-                                }
-                                contentMapsBinding.searchBar.updateLastSuggestions(suggestionsList);
-                                contentMapsBinding.searchBar.showSuggestionsList();
-                            })
-                            .addOnFailureListener(exception -> Log.d(TAG, exception.getMessage()));
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-    }
+            return new LatLng[]{southwest, northeast};
+        }
 
     /**fetch place details from places API*/
     private void fetchPlace(String placeId) {
@@ -316,44 +279,66 @@ public class MapsActivity extends AppCompatActivity implements
 
     private void setUpMap() {
         if (mGoogleMap == null) {
-            Toast.makeText(this,R.string.map_error,Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.map_error, Toast.LENGTH_LONG).show();
             return;
         }
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+
+        // Request location permissions if not granted
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_LOCATION_PERMISSION); // Define REQUEST_LOCATION_PERMISSION as a constant
             return;
         }
+
+        // Get last known location
         mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 mLastKnownLocation = location;
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+
             }
         });
 
+        // Set up location updates
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(10000)
                 .setFastestInterval(5000);
 
         mLocationCallback = new LocationCallback() {
+            private boolean hasFoundNearestGym = false; // Flag to track if nearest gym has been found
+
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
+                if (locationResult == null || hasFoundNearestGym) {
+                    return; // Exit if no location or nearest gym already found
                 }
+
+                Location nearestLocation = null;
+                double nearestDistance = Double.MAX_VALUE;
+
                 for (Location location : locationResult.getLocations()) {
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-                    //todo mViewModel.updateLocation(latLng);
+
+                    // Calculate distance
+                    double distance = calculateDistance(latLng, mLastKnownLocation); // Assuming mLastKnownLocation is your initial location
+
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestLocation = location;
+                    }
+                }
+
+                if (nearestLocation != null) {
+                    LatLng nearestLatLng = new LatLng(nearestLocation.getLatitude(), nearestLocation.getLongitude());
+                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nearestLatLng, DEFAULT_ZOOM));
+                    mViewModel.findNearbyGyms(nearestLatLng);
+                    hasFoundNearestGym = true; // Set flag to prevent further calls
                 }
             }
         };
@@ -362,11 +347,48 @@ public class MapsActivity extends AppCompatActivity implements
         mGoogleMap.setMyLocationEnabled(true);
     }
 
+
+    // Helper function to calculate distance using the Haversine formula
+    private double calculateDistance(LatLng latLng1, Location location2) {
+        if (location2 == null) {
+            return Double.MAX_VALUE; // Handle cases where location2 is null
+        }
+
+        double lat1 = Math.toRadians(latLng1.latitude);
+        double lon1 = Math.toRadians(latLng1.longitude);
+        double lat2 = Math.toRadians(location2.getLatitude());
+        double lon2 = Math.toRadians(location2.getLongitude());
+
+        double dlon = lon2 - lon1;
+        double dlat = lat2 - lat1;
+        double a = Math.pow(Math.sin(dlat / 2), 2)
+                + Math.cos(lat1) * Math.cos(lat2)
+                * Math.pow(Math.sin(dlon / 2), 2);
+
+        double c = 2 * Math.asin(Math.sqrt(a));
+
+        // Radius of earth in kilometers. Use 6371 for kilometers
+        double r = 6371;
+
+        // Calculate the result
+        return(c * r);
+    }
+
+    // Handle permission request result
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, try setting up the map again
+                setUpMap();
+            } else {
+                // Permission denied, handle accordingly (e.g., show a message)
+                Toast.makeText(this, R.string.location_permission_denied, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
 
     @Override
     public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {

@@ -50,9 +50,7 @@ public class CreateExerciseFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = CreateExerciseFragmentBinding.inflate(inflater, container, false);
-        muscleSpinnerCode();
-        mechanicSpinnerCode();
-        return binding.getRoot();
+         return binding.getRoot();
     }
 
     @Override
@@ -86,58 +84,10 @@ public class CreateExerciseFragment extends Fragment {
 
         binding.addExercisePhoto2.setOnClickListener(v ->  getPhoto2FromGallery());
 
-    }
-    void getPhoto2FromGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE2);
-    }
-    void getPhotoFromGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE);
-    }
-
-    Spinner bodyPartSpinner;
-    Spinner mechanicSpinner;
-    TextView nameEditText;
-    TextView executionEditText;
-    TextView additionalNotesEditText;
-    ImageView firstExercisePhoto;
-    ImageView secondExercisePhoto;
-    ScrollView parentScroll;
-    ConstraintLayout loadingLayout;
-    CircleProgress circleProgress;
-    ImageView exerciseNameDot;
-    ImageView executionDot;
-    ImageView mechanicDot;
-    ImageView targetedMuscleDot;
-    ImageView exerciseImagesDot;
+        muscleSpinnerCode();
+        mechanicSpinnerCode();
 
 
-    private void onBackArrowClicked() {
-        // Handle the back button click event
-        requireActivity().onBackPressed();
-    }
-
-
-
-
-
-    private CreateExerciseViewModel mViewModel;
-
-
-    public static CreateExerciseFragment newInstance() {
-        return new CreateExerciseFragment();
-    }
-
-
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
         initViewModel();
 
         mViewModel.getMissingFieldLiveData().observe(getViewLifecycleOwner(), missingField -> {
@@ -164,7 +114,7 @@ public class CreateExerciseFragment extends Fragment {
 
 
         mViewModel.getUploadProgressLiveData().observe(getViewLifecycleOwner(), progress -> {
-             circleProgress.setProgress(progress);
+            circleProgress.setProgress(progress);
         });
 
 
@@ -216,6 +166,55 @@ public class CreateExerciseFragment extends Fragment {
 
 
     }
+    void getPhoto2FromGallery() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE2);
+    }
+    void getPhotoFromGallery() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), PICK_IMAGE);
+    }
+
+    Spinner bodyPartSpinner;
+    Spinner mechanicSpinner;
+    TextView nameEditText;
+    TextView executionEditText;
+    TextView additionalNotesEditText;
+    ImageView firstExercisePhoto;
+    ImageView secondExercisePhoto;
+    ScrollView parentScroll;
+    ConstraintLayout loadingLayout;
+    CircleProgress circleProgress;
+    ImageView exerciseNameDot;
+    ImageView executionDot;
+    ImageView mechanicDot;
+    ImageView targetedMuscleDot;
+    ImageView exerciseImagesDot;
+
+
+    private void onBackArrowClicked() {
+        // Handle the back button click event
+        requireActivity().onBackPressed();
+    }
+
+
+
+
+
+    private CreateExerciseViewModel mViewModel;
+
+
+    public static CreateExerciseFragment newInstance() {
+        return new CreateExerciseFragment();
+    }
+
+
+
+
 
     private void initViewModel() {
         ApplicationViewModelFactory applicationViewModelFactory=new ApplicationViewModelFactory(requireActivity().getApplication());

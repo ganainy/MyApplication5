@@ -54,9 +54,8 @@ public class UserFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (getArguments() != null && getArguments().getParcelable(USER) != null) {
             User mUser = getArguments().getParcelable(USER);
             setToolbarTitle(mUser.getName());

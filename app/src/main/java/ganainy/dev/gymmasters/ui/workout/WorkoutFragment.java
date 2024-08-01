@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -60,8 +61,8 @@ public class WorkoutFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         workoutViewModel = new ViewModelProvider(this).get(WorkoutViewModel.class);
 
         if (getArguments() != null && getArguments().getParcelable(WORKOUT) != null) {
@@ -81,6 +82,7 @@ public class WorkoutFragment extends Fragment {
             }
         }
     }
+
 
     private void setupRecycler() {
         specificWorkoutAdapter = new SpecificWorkoutAdapter(requireActivity().getApplication(),

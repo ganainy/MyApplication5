@@ -58,6 +58,7 @@ public class CreateWorkoutFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
 
+        super.onViewCreated(view, savedInstanceState);
 
          nameEditText=binding.nameEditText;
 
@@ -71,7 +72,10 @@ public class CreateWorkoutFragment extends Fragment {
          searchView=binding.searchView;
          circleProgress=binding.loadingLayout.circleProgress;
 
-         binding.backArrowImageView.setOnClickListener(v ->
+        setupRecycler();
+        levelSpinnerCode();
+
+        binding.backArrowImageView.setOnClickListener(v ->
             requireActivity().onBackPressed()
         );
 
@@ -88,20 +92,6 @@ public class CreateWorkoutFragment extends Fragment {
          loadingLayout= binding.loadingLayout.getRoot();
 
 
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-
-    void openGalleryImageChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), 103);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
         initViewModel();
 
         mViewModel.getNetworkStateLiveData().observe(getViewLifecycleOwner(),networkState -> {
@@ -131,7 +121,7 @@ public class CreateWorkoutFragment extends Fragment {
         });
 
         mViewModel.getUploadProgressLiveData().observe(getViewLifecycleOwner(),progress->{
-             circleProgress.setProgress(progress);
+            circleProgress.setProgress(progress);
         });
 
         mViewModel.getExerciseListLiveData().observe(getViewLifecycleOwner(),exerciseList->{
@@ -167,10 +157,17 @@ public class CreateWorkoutFragment extends Fragment {
             exerciseAdapter.notifyDataSetChanged();
         });
 
+
+
     }
 
 
-
+    void openGalleryImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, SELECT_PICTURE), 103);
+    }
 
 
 

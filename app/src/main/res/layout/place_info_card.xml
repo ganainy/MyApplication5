@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
-
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -9,7 +6,6 @@
     android:background="@drawable/circular_light_grey_bordersolid"
     android:padding="8dp"
     app:layout_constraintTop_toBottomOf="@+id/searchBar">
-
 
     <ImageView
         android:id="@+id/closeImage"
@@ -53,12 +49,10 @@
         app:layout_constraintStart_toEndOf="@+id/textView9"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <ImageView
         android:id="@+id/imageView11"
         android:layout_width="9dp"
         android:layout_height="9dp"
-
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:src="@drawable/orange_circle"
@@ -66,7 +60,7 @@
         app:layout_constraintTop_toBottomOf="@+id/nameShimmer" />
 
     <TextView
-        android:id="@+id/textViewAddress"
+        android:id="@+id/addressLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -78,28 +72,26 @@
         app:layout_constraintTop_toBottomOf="@+id/nameShimmer" />
 
     <TextView
-        android:id="@+id/textView8"
+        android:id="@+id/addressText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:fontFamily="@font/proximanovaregular"
         android:text="Not found"
         android:textSize="17sp"
-        app:layout_constraintLeft_toRightOf="@+id/textViewAddress"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/addressLabel"
         app:layout_constraintTop_toBottomOf="@+id/nameShimmer" />
-
 
     <ImageView
         android:id="@+id/imageView12"
         android:layout_width="9dp"
         android:layout_height="9dp"
-
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:src="@drawable/orange_circle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+        app:layout_constraintTop_toBottomOf="@+id/addressText" />
 
     <TextView
         android:id="@+id/textViewOpeningHours"
@@ -111,10 +103,10 @@
         android:textSize="17sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/imageView12"
-        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+        app:layout_constraintTop_toBottomOf="@+id/addressText" />
 
     <TextView
-        android:id="@+id/textView12"
+        android:id="@+id/openingHours"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
@@ -123,18 +115,17 @@
         android:textSize="17sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textViewOpeningHours"
-        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+        app:layout_constraintTop_toBottomOf="@+id/addressText" />
 
     <ImageView
         android:id="@+id/imageView13"
         android:layout_width="9dp"
-
         android:layout_height="9dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:src="@drawable/orange_circle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
+        app:layout_constraintTop_toBottomOf="@+id/openingHours" />
 
     <TextView
         android:id="@+id/textView13"
@@ -146,7 +137,7 @@
         android:textSize="17sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/imageView13"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
+        app:layout_constraintTop_toBottomOf="@+id/openingHours" />
 
     <TextView
         android:id="@+id/textViewRate"
@@ -158,7 +149,6 @@
         android:textSize="17sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView13"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
-
+        app:layout_constraintTop_toBottomOf="@+id/openingHours" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

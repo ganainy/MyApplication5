@@ -51,8 +51,8 @@ public class ExerciseFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         initViewModel();
 
@@ -91,6 +91,7 @@ public class ExerciseFragment extends Fragment {
             }
         });
     }
+
 
     private void setupClickListeners() {
         binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());

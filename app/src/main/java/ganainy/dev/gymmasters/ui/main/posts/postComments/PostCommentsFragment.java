@@ -52,9 +52,8 @@ public class PostCommentsFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PostCommentsViewModel.class);
         initRecycler();
         initListeners();
@@ -86,6 +85,7 @@ public class PostCommentsFragment extends Fragment {
             else binding.loadingProfileLayout.getRoot().setVisibility(View.GONE);
         });
     }
+
 
     private void initRecycler() {
         postCommentsAdapter = new PostCommentsAdapter(getActivity().getApplication(), new PostCommentCallback() {

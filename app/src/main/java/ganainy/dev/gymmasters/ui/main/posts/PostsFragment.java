@@ -48,9 +48,8 @@ public class PostsFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PostsViewModel.class);
 
         saveLoggedUser();
@@ -103,6 +102,7 @@ public class PostsFragment extends Fragment {
             else binding.loadingProfileLayout.getRoot().setVisibility(View.GONE);
         });
     }
+
 
     private void saveLoggedUser() {
         mViewModel.getLoggedUser().observe(getViewLifecycleOwner(), loggedUser -> {

@@ -53,9 +53,49 @@ public class FindUserFragment extends Fragment {
         return findUserFragment;
     }
 
+
+
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        binding = FindUsersFragmentBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        setupRecycler();
+
+        // Set up click listeners
+        binding.filterImageView.setOnClickListener(v -> showSearchViewLayout());
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filteredUsers.clear();
+                for (User user : users) {
+                    if (user.getName().contains(newText)) {
+                        filteredUsers.add(user);
+                    }
+                }
+                userAdapter.setData(filteredUsers);
+                userAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+
+        binding.searchView.setOnCloseListener(() -> {
+            hideSearchViewLayout();
+            return false;
+        });
+
+        binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());
 
         mViewModel = new ViewModelProvider(this).get(FindUserViewModel.class);
 
@@ -121,46 +161,6 @@ public class FindUserFragment extends Fragment {
             else
                 binding.loadingProgressbar.setVisibility(View.GONE);
         });
-    }
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        binding = FindUsersFragmentBinding.inflate(inflater, container, false);
-        View view = binding.getRoot();
-
-        setupRecycler();
-
-        // Set up click listeners
-        binding.filterImageView.setOnClickListener(v -> showSearchViewLayout());
-        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filteredUsers.clear();
-                for (User user : users) {
-                    if (user.getName().contains(newText)) {
-                        filteredUsers.add(user);
-                    }
-                }
-                userAdapter.setData(filteredUsers);
-                userAdapter.notifyDataSetChanged();
-                return true;
-            }
-        });
-
-        binding.searchView.setOnCloseListener(() -> {
-            hideSearchViewLayout();
-            return false;
-        });
-
-        binding.backArrowImageView.setOnClickListener(v -> requireActivity().onBackPressed());
-
-        return view;
     }
 
     private void showSearchViewLayout() {

@@ -52,8 +52,9 @@ public class UserExercisesFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         mViewModel = new ViewModelProvider(this).get(UserExercisesViewModel.class);
 
         // Arguments can't be null since they're passed with fragment instantiation

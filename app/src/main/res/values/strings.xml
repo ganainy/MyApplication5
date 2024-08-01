@@ -179,4 +179,5 @@
     <!-- todo todo replace with request_id_token-->
     <string name="request_id_token">idk</string>
     <string name="map_error">Error loading the map</string>
+    <string name="location_permission_denied">Can\'t access the location of nearby gyms without location permission.</string>
 </resources>

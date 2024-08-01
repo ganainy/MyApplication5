@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import ganainy.dev.gymmasters.BuildConfig;
 import ganainy.dev.gymmasters.R;
 import ganainy.dev.gymmasters.models.app_models.Gym;
 import ganainy.dev.gymmasters.models.places_models.Candidate;
@@ -50,8 +51,12 @@ public class MapViewModel extends AndroidViewModel {
         super(application);
     }
 
-    public void findNearbyGyms(String apiKey,LatLng latLng) {
+    public void findNearbyGyms(LatLng latLng) {
         mRippleLoadingLiveData.setValue(true);
+
+
+
+
 
         Retrofit retrofit= RetrofitClient.getRetrofitPlacesClient();
         PlacesApi placesApi = retrofit.create(PlacesApi.class);
@@ -59,7 +64,7 @@ public class MapViewModel extends AndroidViewModel {
         /*call places api to find gyms in radius of 5km from my location*/
         Call<Candidates> call = placesApi.getParentObject("gym", "textquery",
                 "geometry/location,formatted_address,name,opening_hours,rating", "circle:5000@" +
-                        latLng.latitude + "," + latLng.longitude, apiKey
+                        latLng.latitude + "," + latLng.longitude, BuildConfig.PLACES_API_KEY
         );
         call.enqueue(new Callback<Candidates>() {
             @Override

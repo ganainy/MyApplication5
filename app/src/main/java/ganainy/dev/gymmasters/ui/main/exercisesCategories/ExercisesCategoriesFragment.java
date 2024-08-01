@@ -60,13 +60,9 @@ public class ExercisesCategoriesFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
-         recyclerView=binding.recyclerView;
         super.onViewCreated(view, savedInstanceState);
-    }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+        recyclerView=binding.recyclerView;
 
         CategoriesAdapter categoriesAdapter = new CategoriesAdapter(selectedCategory -> {
             ((ActivityCallback) requireActivity()).onOpenMuscleFragment(selectedCategory);
@@ -74,8 +70,9 @@ public class ExercisesCategoriesFragment extends Fragment {
         categoriesAdapter.setData(getCategoriesList());
 
         recyclerView.setAdapter(categoriesAdapter);
-
     }
+
+
 
 
     List<Pair<String,Drawable>>getCategoriesList(){

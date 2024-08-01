@@ -17,23 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.mancj.materialsearchbar.MaterialSearchBar
-        android:id="@+id/searchBar"
-        style="@style/MaterialSearchBarLight"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:elevation="5dp"
-        android:outlineProvider="bounds"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:mt_maxSuggestionsCount="10"
-        app:mt_navIconEnabled="true"
-        app:mt_placeholder="Search places"
-        app:mt_speechMode="false" />
 
 
     <com.skyfishjy.library.RippleBackground
